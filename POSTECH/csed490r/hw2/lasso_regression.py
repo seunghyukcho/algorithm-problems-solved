@@ -3,8 +3,7 @@ import numpy as np
 import numpy.linalg as lin
 import matplotlib.pyplot as plt
 
-def lasso(X, y, theta, lmb):
-    w = theta
+def lasso(X, y, w, lmb):
     feature = X[0].size
     for d in range(feature):
         alpha = 0
@@ -32,31 +31,33 @@ def lasso(X, y, theta, lmb):
 dataset = np.array(pd.read_csv('prostate.csv', sep = '\t'))
 X = np.matrix(pd.DataFrame(dataset[:, 1:9]))
 y = np.matrix(pd.DataFrame(dataset[:, 9]))
-w = np.dot(X.T, X)
-w = w.astype(np.float32)
-w_initial = np.dot(lin.inv(w), np.dot(X.T, y))
+w_initial = np.dot(X.T, X)
+w_initial = w_initial.astype(np.float32)
+w_initial = np.dot(lin.inv(w_initial), np.dot(X.T, y))
 w = []
-x_range = range(0, 100000)
+x_range = range(1000)
 
 for i in x_range :
     result = w_initial
     while True :
         check = lasso(X, y, result, i)
         conv = 0
-        for i in range(8) :
-            conv = conv + pow(check[i, 0] - result[i, 0], 2)
+        for j in range(8) :
+            conv = conv + pow(check[j, 0] - result[j, 0], 2)
         conv = pow(conv, 0.5)
         if conv < 0.5 :
             break
         result = check
-    w.append(result)
+    put = []
+    for i in range(8):
+        put.append(result[i, 0])
+    w.append(put)
 w = np.array(w)
-
 graph = plt.gca()
 for i in range(X[0].size):
     graph.plot(x_range, w[:, i])
 graph.set_xscale("log")
 graph.set_xlim(graph.get_xlim()[::-1])
-
+graph.legend(['lcavol', 'lweight', 'age', 'lbph', 'svi', 'lcp', 'gleason', 'pgg45'], loc='upper left')
 plt.show()
 

@@ -32,12 +32,12 @@ x_range = range(10000)
 for i in x_range :
     result = ridge(X, y, i)
     w.append(result)
+    print(w[0])
 w = np.array(w)
-
 graph = plt.gca()
 for i in range(X[0].size) :
     graph.plot(x_range, w[:, i])
 graph.set_xscale('log')
 graph.set_xlim(graph.get_xlim()[::-1])
-
+graph.legend(['lcavol', 'lweight', 'age', 'lbph', 'svi', 'lcp', 'gleason', 'pgg45'], loc='upper left')
 plt.show()
