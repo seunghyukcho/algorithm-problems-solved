@@ -3,7 +3,7 @@ import numpy as np
 import numpy.linalg as lin
 import matplotlib.pyplot as plt
 
-def ridge(X, y, lmb):    
+def ridge(X, y, lmb):
     I = []
     for i in range(X[0].size) :
         row = []
@@ -20,7 +20,7 @@ def ridge(X, y, lmb):
     w = lin.inv(w)
     w = np.dot(w, X.T)
     w = np.dot(w, y)
-    
+
     return w
 
 dataset = np.array(pd.read_csv('prostate.csv', sep='\t'))

@@ -16,16 +16,16 @@ def lasso(X, y, w, lmb):
                 if k == d :
                     continue
                 beta_sum = beta_sum + X[n, k] * w[k, 0]
-                
+
             beta = beta + (y[n, 0] - beta_sum) * X[n, d]
-        
+
         if beta < -lmb :
             w[d, 0] = (beta + lmb) / alpha
-        elif beta > lmb : 
+        elif beta > lmb :
             w[d, 0] = (beta - lmb) / alpha
         else :
             w[d, 0] = 0
-    
+
     return w
 
 dataset = np.array(pd.read_csv('prostate.csv', sep = '\t'))
@@ -45,7 +45,7 @@ for i in x_range :
         for j in range(8) :
             conv = conv + pow(check[j, 0] - result[j, 0], 2)
         conv = pow(conv, 0.5)
-        if conv < 0.5 :
+        if conv < 0.01 :
             break
         result = check
     put = []
@@ -60,4 +60,3 @@ graph.set_xscale("log")
 graph.set_xlim(graph.get_xlim()[::-1])
 graph.legend(['lcavol', 'lweight', 'age', 'lbph', 'svi', 'lcp', 'gleason', 'pgg45'], loc='upper left')
 plt.show()
-
