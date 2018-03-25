@@ -16,9 +16,7 @@ bool bfs(int x, int y){
   vector<int> rows, cols;
 
   queue<P> q;
-  P p;
-  p.x = x;
-  p.y = y;
+  P p = {x, y};
   q.push(p);
 
   vis[x][y] = true;
@@ -39,17 +37,10 @@ bool bfs(int x, int y){
           if(map[here][i] != '#')
             return false;
         }
-        cols.push_back(i);
-        for(int j = 0; j < n; j++){
-          if(map[j][i] == '#' && !vis[j][i]){
-            vis[j][i] = true;
-            p.x = j;
-            p.y = i;
-            q.push(p);
-          }
-        }
         p.x = herex;
         p.y = i;
+
+        cols.push_back(i);
         q.push(p);
       }
     }
@@ -62,17 +53,10 @@ bool bfs(int x, int y){
           if(map[i][here] != '#')
             return false;
         }
-        rows.push_back(i);
-        for(int j = 0; j < n; j++){
-          if(map[i][j] == '#' && !vis[i][j]){
-            vis[j][i] = true;
-            p.x = i;
-            p.y = j;
-            q.push(p);
-          }
-        }
         p.x = i;
         p.y = herey;
+
+        rows.push_back(i);
         q.push(p);
       }
     }
