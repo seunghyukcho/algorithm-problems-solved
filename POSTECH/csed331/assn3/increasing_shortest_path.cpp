@@ -7,57 +7,69 @@ using namespace std;
 
 struct F{
     long long cost;
-    int n, prev_e;
+    int idx, node;
 };
-
-bool operator<(F p1, F p2){
-    return p1.cost > p2.cost;
+bool operator<(F f1, F f2){
+    return f1.cost > f2.cost;
 }
 int t, v, e;
 
 int main(){
     for(cin >> t; t > 0; t--){
-        priority_queue<F> q;
-
+        long long ans = -1;
         cin >> v >> e;
-        vector<vector<pair<int, int> > > graph(v);
-        vector<long long> total_cost(v, -1);
 
+        vector<pair<int, long long> > edge(e);
+        vector<vector<pair<int, int> > > graph(v);
         for(int i = 0; i < e; i++){
-            int u, v, p;
-            cin >> u >> v >> p;
-            graph[u].push_back({v, p});
-            graph[v].push_back({u, p});
+            int u, v, w;
+            cin >> u >> v >> w;
+
+            edge[i] = {w, -1};
+            graph[u].push_back({v, i});
+            graph[v].push_back({u, i});
         }
 
-        q.push({0, 0, 0});
-        total_cost[0] = 0;
+        priority_queue<F> pq;
+        for(auto here : graph[0]){
+            pq.push({edge[here.second].first, here.second, here.first});
+            edge[here.second].second = edge[here.second].first;
+        }
 
-        while(!q.empty()){
-            auto here = q.top();
-            q.pop();
-            if(total_cost[here.n] > here.cost)
+        while(!pq.empty()){
+            auto here = pq.top();
+            pq.pop();
+            if(edge[here.idx].second < here.cost)
                 continue;
-            for(auto next : graph[here.n]){
-                if(next.second <= here.prev_e)
+            for(auto next : graph[here.node]){
+                if(edge[next.second].first <= edge[here.idx].first)
                     continue;
-
-                if(total_cost[next.first] == -1){
-                    total_cost[next.first] = here.cost + next.second;
-                    if(next.first != v - 1)
-                        q.push({total_cost[next.first], next.first, next.second});
-                }
-                else{
-                    if(total_cost[next.first] > here.cost + next.second){
-                        total_cost[next.first] = here.cost + next.second;
-                        if(next.first != v - 1)
-                            q.push({total_cost[next.first], next.first, next.second});
+                if(edge[next.second].second == -1){
+                    edge[next.second].second = here.cost + edge[next.second].first;
+                    if(next.first == v - 1){
+                        if(ans == -1)
+                            ans = edge[next.second].second;
+                        else
+                            ans = min(ans, edge[next.second].second);
                     }
+                    else
+                        pq.push({edge[next.second].second, next.second, next.first});
+                }
+                else if(edge[next.second].second > here.cost + edge[next.second].first){
+                    if(next.first == v - 1){
+                        if(ans == -1)
+                            ans = edge[next.second].second;
+                        else
+                            ans = min(ans, edge[next.second].second);
+                    }
+                    else
+                        pq.push({edge[next.second].second, next.second, next.first});
                 }
             }
         }
 
-        cout << total_cost[v - 1] << '\n';
+        cout << ans << '\n';
     }
+
     return 0;
 }
