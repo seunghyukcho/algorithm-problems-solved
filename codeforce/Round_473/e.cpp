@@ -1,19 +1,16 @@
 #include<iostream>
+#include<cmath>
 
 using namespace std;
 
+long long n, ans;
+
 int main(){
-    long long n;
-    long long ans = 0;
-
     cin >> n;
-    n--;
 
-    ans += (n / 2) + n % 2;
-    ans += (n / 2) * 2;
-    for(int k = 2; n / (1 << k) > 0; k++){
-        ans += (1 << (k - 1)) * (n / (1 << k));
-    }
+    n--;
+    for(long long i = 1; i <= n; i <<= 1)
+        ans += i * ((n - i) / (2 * i) + 1);
 
     cout << ans << '\n';
 
