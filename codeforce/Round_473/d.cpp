@@ -1,46 +1,43 @@
 #include<iostream>
-#include<cmath>
+#include<vector>
+#include<set>
+#include<algorithm>
 
 using namespace std;
 
-int n, a[100002];
-bool check[100002];
-
-void gen_check(int num){
-    for(int i = 2; i < sqrt(num); i++)
-        if(num % i == 0 && !check[i]){
-            for(int j = 1; j * i <= 1e5; j++)
-                check[j * i] = true;
-        }
-    if(!check[num])
-        for(int j = 1; j * num <= 1e5; j++)
-            check[j * num] = true;
-}
+int n, a, pr[2000002];
+vector<vector<int> > dv(2000002);
+set<int> s;
+bool lex = false;
 
 int main(){
-    bool lex = false;
-    int num;
-
-    cin >> n;
-    for(int i = 0; i < n; i++)
-        cin >> a[i];
-
-    for(int i = 0; i < n; i++){
-        if(lex){
-            for(num = a[i] - 1; check[num]; num--){}
-            printf("%d ", num);
-            gen_check(num);
-        }
-        else{
-            if(check[a[i]]){
-                for(num = a[i]; check[num]; num++){}
-                printf("%d ", num);
-                gen_check(num);
-                lex = true;
+    for(int i = 2; i <= 2e6; i++){
+        if(!pr[i]){
+            for(int j = i; j <= 2e6; j += i){
+                pr[j] = 1;
+                dv[j].push_back(i);
             }
-            else{
-                printf("%d ", a[i]);
-                gen_check(a[i]);
+        }
+        s.insert(i);
+    }
+
+    for(cin >> n; n > 0; n--){
+        cin >> a;
+        int cur = *s.begin();
+
+        if(!lex){
+            cur = *s.lower_bound(a);
+            if(cur != a)
+                lex = true;
+        }
+
+        printf("%d ", cur);
+        for(auto d : dv[cur]){
+            for(int i = d; i <= 2e6; i += d){
+                if(pr[i]){
+                    s.erase(i);
+                    pr[i] = 0;
+                }
             }
         }
     }
