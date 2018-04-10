@@ -5,54 +5,54 @@
 
 using namespace std;
 
-struct F{
+int t, v, e;
+struct Edge{
+    int w, pos;
+};
+struct Vertex{
     long long cost;
-    int n, le;
+    int pos;
 };
 
-bool operator<(F p1, F p2){
-    return p1.cost > p2.cost;
-}
-int t, v, e;
+bool operator<(Vertex v1, Vertex v2){return v1.cost > v2.cost;}
 
 int main(){
     for(cin >> t; t > 0; t--){
-        priority_queue<F> q;
-
         cin >> v >> e;
-        vector<vector<pair<int, int> > > graph(v);
-        vector<long long> total_cost(v, -1);
+        vector<vector<Edge> > graph(2 * v + 1);
 
         for(int i = 0; i < e; i++){
-            int u, v, p;
-            cin >> u >> v >> p;
-            graph[u].push_back({v, p});
+            int start, next, p;
+            cin >> start >> next >> p;
+
+            graph[start].push_back({p, next});
+            graph[start].push_back({0, next + v});
+            graph[start + v].push_back({p, next + v});
         }
 
-        q.push({0, 0, 0});
-        total_cost[0] = 0;
+        priority_queue<Vertex> pq;
+        vector<long long> cost(2 * v + 1, -1);
 
-        while(!q.empty()){
-            auto here = q.top();
-            q.pop();
-            if(total_cost[here.n] > here.cost)
+        cost[0] = 0;
+        pq.push({0, 0});
+        while(!pq.empty()){
+            auto here = pq.top();
+            pq.pop();
+
+            if(here.cost > cost[here.pos])
                 continue;
-            for(auto next : graph[here.n]){
-                if(total_cost[next.first] == -1){
-                    total_cost[next.first] = here.cost + min(here.le, next.second);
-                    if(next.first != v - 1)
-                        q.push({total_cost[next.first], next.first, max(here.le, next.second)});
-                }
-                else{
-                    if(total_cost[next.first] > here.cost + min(here.le, next.second)){
-                        total_cost[next.first] = here.cost + min(here.le, next.second);
-                        if(next.first != v - 1)
-                            q.push({total_cost[next.first], next.first, max(here.le, next.second)});
-                    }
+
+            for(auto e : graph[here.pos]){
+                if(cost[e.pos] == -1 || cost[e.pos] > here.cost + e.w){
+                    cost[e.pos] = here.cost + e.w;
+                    if(e.pos != v - 1 && e.pos != 2 * v - 1)
+                        pq.push({cost[e.pos], e.pos});
                 }
             }
         }
-        cout << total_cost[v - 1] << '\n';
+
+        printf("%lld\n", min(cost[v - 1], cost[2 * v - 1]));
     }
+
     return 0;
 }
