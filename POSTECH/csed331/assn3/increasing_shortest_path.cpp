@@ -16,7 +16,7 @@ bool operator<(Edge v1, Edge v2){return v1.cost > v2.cost;}
 bool comp(Edge e1, Edge e2){return e1.w > e2.w;}
 int search(vector<Edge> g, int val){
     int l = 0, r = g.size() - 1;
-    while(l < r){
+    while(l + 1 < r){
         int mid = (l + r) / 2;
         if(g[mid].w <= val)
             r = mid - 1;
@@ -24,12 +24,24 @@ int search(vector<Edge> g, int val){
             l = mid;
     }
 
+    if(l + 1 == r){
+        if(g[l].w <= val)
+            return -1;
+        else if(g[r].w <= val)
+            return l;
+        else
+            return r;
+    }
+    
     if(g[l].w <= val)
         return -1;
     else
         return l;
 }
+
 int main(){
+    ios::sync_with_stdio(false);
+
     for(cin >> t; t > 0; t--){
         cin >> v >> e;
 
@@ -83,7 +95,7 @@ int main(){
             }
         }
 
-        printf("%lld\n", ans);
+        cout << ans << '\n';
     }
 
     return 0;
