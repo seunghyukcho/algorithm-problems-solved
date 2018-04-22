@@ -13,13 +13,15 @@ int vertex(char ch){
         return ch - 'A';
 }
 
+long long mx;
+
 int n;
 vector<vector<int> > graph(vertex('z') + 1);
 vector<bool> visit(60, false);
-int Capacity[60][60];
-int Flow[60][60];
+long long Capacity[60][60];
+long long Flow[60][60];
 
-int get_flow(int u, int MaxCapacity){
+long long get_flow(int u, long long MaxCapacity){
     if(u == vertex('Z'))
         return MaxCapacity;
     for(int next : graph[u]){
@@ -27,12 +29,19 @@ int get_flow(int u, int MaxCapacity){
             continue;
 
         visit[next] = true;
-        int c = Flow[next][u] ? Flow[next][u] + Capacity[next][u] : Capacity[u][next] - Flow[u][next];
-        int f = get_flow(next, min(MaxCapacity, c));
+        long long c = Capacity[u][next] - Flow[u][next];
+        long long f = get_flow(next, min(MaxCapacity, c));
 
         if(f > 0){
-            Flow[u][next] += max(0, f - Flow[next][u]);
-            Flow[next][u] = max(0, Flow[next][u] - f);
+            Flow[u][next] += f;
+            return f;
+        }
+
+        c = Flow[next][u];
+        f = get_flow(next, min(MaxCapacity, c));
+
+        if(f > 0){
+            Flow[next][u] -= f;
             return f;
         }
     }
@@ -40,9 +49,9 @@ int get_flow(int u, int MaxCapacity){
     return 0;
 }
 
-int get_max_flow(){
-    int total = 0, f;
-    f = get_flow(vertex('A'), 1e9);
+long long get_max_flow(){
+    long long total = 0, f;
+    f = get_flow(vertex('A'), mx);
 
     while(f > 0){
         total += f;
@@ -64,6 +73,9 @@ int main(){
         Capacity[vertex(v)][vertex(u)] += c;
         graph[vertex(u)].push_back(vertex(v));
         graph[vertex(v)].push_back(vertex(u));
+
+        if(u == 'Z' || v == 'Z')
+            mx += c;
     }
 
     visit[vertex('A')] = true;
