@@ -24,13 +24,17 @@ long long Flow[60][60];
 long long get_flow(int u, long long MaxCapacity){
     if(u == vertex('Z'))
         return MaxCapacity;
+
     for(int next : graph[u]){
         if(visit[next])
             continue;
 
-        visit[next] = true;
+        long long f = 0;
         long long c = Capacity[u][next] - Flow[u][next];
-        long long f = get_flow(next, min(MaxCapacity, c));
+        if(c > 0){
+            visit[next] = true;
+            f = get_flow(next, min(MaxCapacity, c));
+        }
 
         if(f > 0){
             Flow[u][next] += f;
@@ -38,7 +42,11 @@ long long get_flow(int u, long long MaxCapacity){
         }
 
         c = Flow[next][u];
-        f = get_flow(next, min(MaxCapacity, c));
+        f = 0;
+        if(c > 0){
+            visit[next] = true;
+            f = get_flow(next, min(MaxCapacity, c));
+        }
 
         if(f > 0){
             Flow[next][u] -= f;
@@ -51,23 +59,24 @@ long long get_flow(int u, long long MaxCapacity){
 
 long long get_max_flow(){
     long long total = 0, f;
-    f = get_flow(vertex('A'), mx);
 
-    while(f > 0){
-        total += f;
-        for(int i = 1; i < 60; i++)
+    do{
+        for(int i = 1; i <= vertex('z'); i++)
             visit[i] = false;
-        f = get_flow(vertex('A'), 1e9);
-    }
+        f = get_flow(vertex('A'), mx);
+        total += f;
+    } while(f > 0);
+
     return total;
 }
+
 int main(){
     ios::sync_with_stdio(false);
 
     cin >> n;
     for(int i = 0; i < n; i++){
         char u, v;
-        int c;
+        long long c;
         cin >> u >> v >> c;
         Capacity[vertex(u)][vertex(v)] += c;
         Capacity[vertex(v)][vertex(u)] += c;
