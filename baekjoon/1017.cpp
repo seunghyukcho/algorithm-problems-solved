@@ -5,100 +5,126 @@
 
 using namespace std;
 
-int n, s, t;
-vector<vector<int> > graph(52);
-vector<int> num(52);
-vector<int> ans;
+int n;
 vector<bool> visit(102, false);
-int capacity[102][102];
-int flow[102][102];
+int capacity[55][55];
+int flow[55][55];
 
 bool is_prime(int n){
     for(int i = 2; i <= sqrt(n); i++)
         if(n % i == 0)
             return false;
+
     return true;
 }
 
 int get_flow(int u, int maxcapacity){
-    if(u == t)
+    if(u == n + 1)
         return maxcapacity;
 
-    for(int next : graph[u]){
-        if(visit[next])
+    for(int i = 0; i <= n + 1; i++){
+        if(visit[i])
             continue;
-        visit[next] = true;
-        int c = capacity[u][next] - flow[u][next];
-        int f = get_flow(next, min(c, maxcapacity));
-        if(f > 0){
-            flow[u][next] += f;
-            return f;
+
+        int f = 0;
+        int c = capacity[u][i] - flow[u][i];
+
+        if(c > 0){
+            visit[i] = true;
+            f = get_flow(i, min(maxcapacity, c));
+            if(f > 0){
+                flow[u][i] += maxcapacity;
+                return f;
+            }
         }
 
-        c = flow[next][u];
-        f = get_flow(next, min(c, maxcapacity));
-        if(f > 0){
-            flow[next][u] -= c;
-            return f;
+        f = 0;
+        c = flow[i][u];
+
+        if(c > 0){
+            visit[i] = true;
+            f = get_flow(i, min(maxcapacity, c));
+            if(f > 0){
+                flow[i][u] -= maxcapacity;
+                return f;
+            }
         }
-        visit[next] = false;
     }
 
     return 0;
 }
 
-bool get_max_flow(int here){
-    int f, total = 0;
-    for(int i = 0; i <= 2 * n + 1; i++)
-        for(int j = 0; j <= 2 * n + 1; j++)
-            flow[i][j] = 0;
-    do{
-        for(int i = 0; i <= 2 * n + 1; i++)
-            visit[i] = false;
-        visit[1] = visit[here] = true;
+int get_max_flow(int check){
+    int f = 0, ret = 0;
 
-        f = get_flow(s, 1e9);
-        total += f;
+    do{
+        for(int i = 0; i <= n + 1; i++)
+            visit[i] = false;
+
+        visit[0] = visit[1] = visit[check] = true;
+
+        f = get_flow(0, 1e9);
+        ret += f;
     } while(f > 0);
-    cout << total << '\n';
-    return ((total == (n - 2) / 2) ? true : false);
+
+    return ret;
 }
 
 int main(){
+    vector<int> left, right, ans;
+    bool check = false;
+    int num;
+
     cin >> n;
-    s = 0;
-    t = 2 * n + 1;
 
-    for(int i = 1; i <= n; i++){
-        cin >> num[i];
-        capacity[s][i] = 1;
-        graph[s].push_back(i);
+    cin >> num;
+    if(num % 2)
+        check = true;
+    left.push_back(num);
 
-        capacity[n + i][t] = 1;
-        graph[n + i].push_back(t);
+    for(int i = 1; i < n; i++){
+        int num;
+        cin >> num;
+
+        if((num % 2 && check) || (num % 2 == 0 && !check))
+            left.push_back(num);
+        else
+            right.push_back(num);
     }
 
-    for(int i = 1; i <= n; i++){
-        for(int j = i + 1; j <= n; j++){
-            if(is_prime(num[i] + num[j])){
-                graph[i].push_back(n + j);
-                capacity[i][n + j] = 1;
+    if(left.size() == right.size()){
+        int sz = left.size();
+        for(int i = 0; i < sz; i++){
+            capacity[0][i + 1] = 1;
+            for(int j = 0; j < right.size(); j++){
+                capacity[sz + j + 1][n + 1] = 1;
+                if(is_prime(left[i] + right[j]))
+                    capacity[i + 1][sz + j + 1] = 1;
             }
+        }
+
+
+        for(int i = 0; i < right.size(); i++){
+            if(capacity[1][sz + 1 + i] == 0)
+                continue;
+
+            for(int j = 0; j <= n + 1; j++)
+                for(int k = 0; k <= n + 1; k++)
+                    flow[j][k] = 0;
+            int result = get_max_flow(sz + 1 + i);
+            if(result == right.size() - 1)
+                ans.push_back(right[i]);
         }
     }
 
-    for(auto here : graph[1]){
-        if(get_max_flow(here))
-            ans.push_back(num[here - n]);
-    }
-
     if(ans.size() == 0)
-        cout << -1;
+        cout << -1 << '\n';
     else{
+        sort(ans.begin(), ans.end());
         for(auto output : ans)
             cout << output << ' ';
+        cout << '\n';
     }
-    cout << '\n';
 
     return 0;
 }
