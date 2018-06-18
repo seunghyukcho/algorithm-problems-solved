@@ -2,49 +2,57 @@
 
 using namespace std;
 
-int c, h, w;
-int dir[4][2] = {0, 1, 1, 0, 0, -1, -1, 0};
+int t, h, w, dir[4][3][2] = {{0, 0, 1, 0, 1, 1}, {0, 0, 0, 1, 1, 1}, {0, 0, 0, 1, 1, 0}, {0, 0, 1, -1, 1, 0}};
+char board[22][22];
 long long ans;
-char board[25][25];
 
-void dfs(){
-    bool check = true;
+void cover(int x, int y){
+    if(x == h){
+        ans++;
+        return;
+    }
 
-    for(int i = 0; i < h; i++)
-        for(int j = 0; j < w; j++){
-            if(board[i][j] == '.'){
-                check = false;
-                for(int k = 0; k < 4; k++){
-                    int nextx[2] = {i + dir[k][0], i + dir[(k + 1) % 4][0]};
-                    int nexty[2] = {j + dir[k][1], j + dir[(k + 1) % 4][1]};
+    if(board[x][y] == '#')
+        cover(x + (y + 1) / w, (y + 1) % w);
+    else{
+        for(int k = 0; k < 4; k++){
+            int i;
+            for(i = 0; i < 3; i++){
+                int nextx = x + dir[k][i][0];
+                int nexty = y + dir[k][i][1];
 
-                    if(nextx[0] < 0 || nexty[0] < 0 || nextx[1] < 0 || nexty[1] < 0)
-                        continue;
-                    if(nextx[0] >= h || nexty[0] >= w || nextx[1] >= h || nexty[1] >= w)
-                        continue;
-                    if(board[nextx[0]][nexty[0]] != '.' || board[nextx[1]][nexty[1]] != '.')
-                        continue;
+                if(nextx < 0 || nexty < 0 || nextx >= h || nexty >= w || board[nextx][nexty] == '#')
+                    break;
+            }
 
-                    board[nextx[0]][nexty[0]] = board[nextx[1]][nexty[1]] = board[i][j] = '#';
-                    dfs();
-                    board[nextx[0]][nexty[0]] = board[nextx[1]][nexty[1]] = board[i][j] = '.';
+            if(i == 3){
+                for(i = 0; i < 3; i++){
+                    int nextx = x + dir[k][i][0];
+                    int nexty = y + dir[k][i][1];
+
+                    board[nextx][nexty] = '#';
+                }
+                cover(x + (y + 1) / w, (y + 1) % w);
+                for(i = 0; i < 3; i++){
+                    int nextx = x + dir[k][i][0];
+                    int nexty = y + dir[k][i][1];
+
+                    board[nextx][nexty] = '.';
                 }
             }
         }
-
-    if(check)
-        ans++;
+    }
 }
 
 int main(){
-    for(cin >> c; c > 0; c--){
+    for(cin >> t; t > 0; t--){
         cin >> h >> w;
         for(int i = 0; i < h; i++)
             for(int j = 0; j < w; j++)
                 cin >> board[i][j];
 
         ans = 0;
-        dfs();
+        cover(0, 0);
 
         cout << ans << '\n';
     }
