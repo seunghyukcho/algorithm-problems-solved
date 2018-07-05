@@ -2,7 +2,8 @@
 #include<queue>
 #include<vector>
 #include<algorithm>
-#define MAX 123456789
+
+long long MAX = 5e10;
 
 using namespace std;
 
@@ -32,7 +33,8 @@ struct MCMF {
     }
 
     int source, sink, vSize = 1010;
-    int dist[1010], check[1010], prev[1010];
+    long long dist[1010];
+    long long check[1010], prev[1010];
 
     vector<int> spfa() {
         for(int i = 0; i <= vSize; i++) {
@@ -44,7 +46,6 @@ struct MCMF {
         q.push(source);
 
         dist[source] = 0;
-        check[source] = 1;
 
         while(!q.empty()) {
             int here = q.front();
@@ -55,9 +56,10 @@ struct MCMF {
                 int next = edge.e;
                 int idx = edge.idx;
 
-                if(E[idx].capacity && dist[here] + E[idx].cost < dist[next]) {
+                if(E[idx].capacity > 0 && dist[here] + E[idx].cost < dist[next]) {
                     dist[next] = dist[here] + E[idx].cost;
                     prev[next] = idx;
+
                     if(check[next] == 0) {
                         check[next] = 1;
                         q.push(next);
@@ -76,17 +78,17 @@ struct MCMF {
         }
     }
 
-    pair<int, int> mcmf() {
-        int flow = 0, cost = 0;
+    pair<long, long> mcmf() {
+        long long flow = 0, cost = 0;
 
         while(true){
             vector<int> path = spfa();
             if(path.size() == 0) break;
 
-            int f = MAX, c = 0;
+            long long f = MAX, c = 0;
             for(auto here : path) {
-                f = min(f, E[here].capacity);
-                c += E[here].cost;
+                f = f < E[here].capacity ? f : E[here].capacity;
+                c += (long long)E[here].cost;
             }
 
             cost += f * c;
@@ -121,5 +123,6 @@ int main(){
         }
     }
 
-    cout << G.mcmf().second << '\n';
+    auto result = G.mcmf();
+    cout << result.first << ' ' << result.second << '\n';
 }

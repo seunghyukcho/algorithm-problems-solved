@@ -56,11 +56,11 @@ struct MCMF {
                 int next = edge.e;
                 int idx = edge.idx;
 
-                if(E[idx].capacity && dist[here] + E[idx].cost < dist[next]) {
+                if(E[idx].capacity > 0 && dist[here] + E[idx].cost < dist[next]) {
                     dist[next] = dist[here] + E[idx].cost;
                     prev[next] = idx;
 
-                    if(next != sink && check[next] == 0) {
+                    if(check[next] == 0) {
                         check[next] = 1;
                         q.push(next);
                     }
@@ -117,7 +117,7 @@ int main(){
         cin >> s >> e >> c;
 
         G.setEdge(s, e, 1, c);
-        G.setEdge(e, s, 1, -c);
+        G.setEdge(e, s, 1, c);
     }
 
     G.setEdge(0, 1, 2, 0);
