@@ -2,7 +2,7 @@
 #include<vector>
 #include<algorithm>
 #include<queue>
-#define MAXSIZE 110
+#define MAXSIZE 2010
 #define MAX 100000000
 
 using namespace std;
@@ -15,13 +15,9 @@ struct FlowGraph {
     void setEdge(int u, int v, int c) {
         if(capacity[u][v] == 0) {
             capacity[u][v] = c;
-            capacity[v][u] = c;
             V[u].push_back(v);
             V[v].push_back(u);
-        } else {
-            capacity[u][v] += c;
-            capacity[v][u] += c;
-        }
+        } else capacity[u][v] += c;
     }
 
     void levelGraph() {
@@ -33,7 +29,6 @@ struct FlowGraph {
 
         while(!q.empty()) {
             int here = q.front(); q.pop();
-
             for(int next : V[here]) {
                 if(level[next] == -1 && capacity[here][next]) {
                     level[next] = level[here] + 1;
@@ -53,7 +48,7 @@ struct FlowGraph {
                 long long f = dfs(next, min(minFlow, capacity[u][next]));
                 if(f) {
                     capacity[u][next] -= f;
-                    //capacity[next][u] += f;
+                    capacity[next][u] += f;
                     return f;
                 }
             }
@@ -79,24 +74,29 @@ struct FlowGraph {
     }
 } G;
 
-int vertex(char ch) {
-    if(ch < 'a') return ch - 'A';
-    else return ch - 'a' + 'Z' - 'A' + 1;
-}
+int n, m, k;
 
-int n;
+int main(){
+    cin >> n >> m >> k;
+    G.source = 0;
+    G.sink = n + m + 1;
 
-int main() {
-    cin >> n;
-    for(int i = 0; i < n; i++){
-        char s, e;
-        int cost;
-        cin >> s >> e >> cost;
-        G.setEdge(vertex(s), vertex(e), cost);
+    G.setEdge(0, n + m + 2, k);
+    for(int i = 1; i <= n; i++) {
+        G.setEdge(n + m + 2, i, 1);
+        G.setEdge(0, i, 1);
+
+        int num;
+        for(cin >> num; num > 0; num--) {
+            int next;
+            cin >> next;
+
+            G.setEdge(i, n + next, 1);
+        }
     }
 
-    G.source = vertex('A');
-    G.sink = vertex('Z');
+    for(int i = 1; i <= m; i++) G.setEdge(i + n, n + m + 1, 1);
+
 
     cout << G.maxflow() << '\n';
 

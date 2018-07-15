@@ -53,7 +53,6 @@ struct FlowGraph {
                 long long f = dfs(next, min(minFlow, capacity[u][next]));
                 if(f) {
                     capacity[u][next] -= f;
-                    //capacity[next][u] += f;
                     return f;
                 }
             }
@@ -79,26 +78,47 @@ struct FlowGraph {
     }
 } G;
 
-int vertex(char ch) {
-    if(ch < 'a') return ch - 'A';
-    else return ch - 'a' + 'Z' - 'A' + 1;
-}
-
-int n;
+int n, m;
+struct Edge {
+    int start, end, cost;
+} E[502];
+bool comp(Edge e1, Edge e2) { return e1.cost < e2.cost; }
 
 int main() {
-    cin >> n;
-    for(int i = 0; i < n; i++){
-        char s, e;
-        int cost;
-        cin >> s >> e >> cost;
-        G.setEdge(vertex(s), vertex(e), cost);
+    cin >> n >> m;
+    for(int i = 0; i < m; i++) {
+        int s, e, c;
+        cin >> s >> e >> c;
+
+        E[i] = {s, e, c};
+    }
+    sort(E, E + m, comp);
+
+    int ans = 0;
+    for(int i = 0; i < m; i++) {
+        for(int i = 1; i <= n; i++) {
+            for(int next : G.V[i]) {
+                G.capacity[i][next] = 0;
+                G.capacity[next][i] = 0;
+            }
+
+            G.V[i].clear();
+        }
+
+        Edge e = E[i];
+        G.source = e.start;
+        G.sink = e.end;
+
+        for(int j = 0; j < i; j++) {
+            Edge input = E[j];
+
+            G.setEdge(input.start, input.end, 1);
+        }
+
+        ans += G.maxflow();
     }
 
-    G.source = vertex('A');
-    G.sink = vertex('Z');
-
-    cout << G.maxflow() << '\n';
+    cout << ans << '\n';
 
     return 0;
 }
