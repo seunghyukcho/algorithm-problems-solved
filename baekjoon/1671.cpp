@@ -7,8 +7,11 @@
 
 using namespace std;
 
-int t, n, m, total, dir[6][2] = {-1, -1, 0, -1, 0, 1, -1, 1, 1, -1, 1, 1};
-char board[100][100];
+struct Shark {
+    long long size, speed, intel;
+} S[52];
+
+int n;
 
 struct FlowGraph {
     struct Edge {
@@ -93,46 +96,26 @@ struct FlowGraph {
 } G;
 
 int main(){
-    for(cin >> t; t > 0; t--) {
-        G.clear();
-        cin >> n >> m;
-        total = n * m;
+    cin >> n;
+    G.source = 0; G.sink = 2 * n + 1;
 
-        G.source = 0;
-        G.sink = n * m + 1;
+    for(int i = 1; i <= n; i++) {
+        G.setEdge(0, i, 2);
+        G.setEdge(n + i, 2 * n + 1, 1);
 
-        for(int i = 0; i < n; i++)
-            for(int j = 0; j < m; j++){
-                cin >> board[i][j];
+        cin >> S[i].size >> S[i].speed >> S[i].intel;
 
-                if(board[i][j] == 'x') total--;
+        for(int j = 1; j < i; j++){
+            if(S[j].size <= S[i].size && S[j].speed <= S[i].speed && S[j].intel <= S[i].intel){
+                if(!(S[j].size == S[i].size && S[j].speed == S[i].speed && S[j].intel == S[i].intel)) G.setEdge(i, n + j, 1);
             }
-
-
-        for(int i = 0; i < n; i++)
-            for(int j = 0; j < m; j += 2) {
-                if(board[i][j] == 'x') continue;
-
-                int start = i * m + j + 1;
-
-                G.setEdge(0, start, 1);
-
-                for(int k = 0; k < 6; k++) {
-                    int nextx = i + dir[k][0];
-                    int nexty = j + dir[k][1];
-                    if(nextx < 0 || nexty < 0 || nextx >= n || nexty >= m || board[nextx][nexty] == 'x') continue;
-
-                    int end = nextx * m + nexty + 1;
-                    G.setEdge(start, end, 1);
-                }
-            }
-
-        for(int i = 0; i < n; i++)
-            for(int j = 1; j < m; j += 2)
-                G.setEdge(i * m + j + 1, n * m + 1, 1);
-
-        cout << total - G.maxflow() << '\n';
+            if(S[j].size >= S[i].size && S[j].speed >= S[i].speed && S[j].intel >= S[i].intel)
+                G.setEdge(j, n + i, 1);
+        }
     }
+
+
+    cout << n - G.maxflow() << '\n';
 
     return 0;
 }

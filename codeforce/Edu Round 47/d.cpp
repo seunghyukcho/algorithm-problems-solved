@@ -1,25 +1,31 @@
 #include<iostream>
+#include<vector>
 
 using namespace std;
 
+int gcd(int a, int b) { return (b % a) ? gcd(b % a, a) : a; }
+
+vector<pair<int, int> > ans;
+
 int main(){
-    int limit = 0, n, m;
+    long long n, m;
+    scanf("%lld%lld", &n, &m);
 
-    cin >> n >> m;
-
-    limit = n - 1;
-    for(int i = 2; i < n; i++) {
-        limit += n - i - n / i + 1;
-    }
-
-    if(limit < m) cout << "Impossible\n";
+    if(m > n * (n - 1) / 2 || m < n - 1) printf("Impossible\n");
     else {
-        cout << "Possible\n";
-        for(int i = 2; i <= n && m; i++, m--) cout << 1 << ' ' << i << '\n';
-        for(int i = 2; i <= n && m; i++) {
-            for(int j = 1; j * i <= n && m; j++) {
-                for(int k = 1; k < i; k++, m--) cout << i << ' ' << i
+        for(int i = 2; i <= n; i++) ans.push_back({1, i});
+        for(int i = 3; i <= n && ans.size() < m; i++) {
+            for(int j = 2; j < i; j++) {
+                if(gcd(i, j) == 1) ans.push_back({j, i});
             }
         }
+
+        if(ans.size() < m) printf("Impossible\n");
+        else {
+            printf("Possible\n");
+            for(int i = 0; i < m; i++) printf("%d %d\n", ans[i].first, ans[i].second);
+        }
     }
+
+    return 0;
 }
