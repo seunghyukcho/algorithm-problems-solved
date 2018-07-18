@@ -1,44 +1,73 @@
 #include<iostream>
+#include<algorithm>
 #include<cmath>
 
 using namespace std;
 
-int D[5000000], ans, a, b, x;
-int board[5][5], dir[4][4] = {0, 1, 0, -1,
-                            1, 1, -1, -1,
-                            1, 0, -1, 0,
-                            -1, 1, 1, -1};
+long long D[pow(3, 16) - 1];
+int x, a, b;
 
-int dy() {
-    int index = 0, ret = 0;
-    for(int i = 1; i <= 4; i++) {
-        for(int j = 1; j <= 4; j++) {
-            ret += pow(3, board[j][i]);
-        }
-    }
+int dir[4][4] = {0, 1, 0, -1, 1, 0, -1, 0, 1, 1, -1, -1, 1, -1, -1, 1};
+int board[4][4];
+
+int convert() {
+    int ret = 0;
+    for(int i = 0; i < 4; i++) for(int j = 0; j < 4; j++) ret += pow(3, i + j) * board[i][j];
 
     return ret;
 }
 
-void check() {
+bool row(int x, int y) {
+    for(int i = 0; i < 4; i++) {
+        int next[4] = {x + dir[i][0], y + dir[i][1], x + dir[i][2], y + dir[i][3]};
 
+        bool check = true;
+        for(int j = 0; j < 4 && check; j++) {
+            if(next[j] < 0 || next[j] > 4) check = false;
+        }
+
+        if(check) {
+            if(board[next[0]][next[1]] == board[next[2][3]] && board[next[0]][next[1]] == board[x][y]) return true;
+        }
+    }
+
+    return false;
 }
 
-void dfs(int player) {
-    check();
+bool check() {
+    if(board[a][b] != 2) return false;
 
-    for(int i = 1; i <= 4; i++) {
-        for(int j = 4; j > 0 && !board[j][i]; j--){
-            if(j) {
-                board[j][i] = player;
-                if(!dy()) dfs((player == 1 ? 2 : 1));
-                board[j][i] = 0;
+    board[a][b] = 0;
+    for(int i = 0; i < 4; i++)
+        for(int j = 0; j < 4; j++) {
+            if(board[i][j]) {
+                if(row(i, j)) return false;
+            }
+        }
+
+    board[a][b] = 2;
+    for(int i = a - 1; i <= a + 1; i++)
+        for(int j = a - 1; j <= a + 1; j++) {
+            if(i >= 0 && j >= 0 && i < 4 && j < 4) {
+                if(row(i, j)) return true;
+            }
+        }
+
+    return false;
+}
+
+int dfs(int player) {
+    int here = convert();
+    if(D[here]) return D[here];
+
+
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            if(!board[i][j]) {
+                if(i == 3 || board[i + 1][j]) {
+                    board[]
+                }
             }
         }
     }
-}
-
-
-int main(){
-
 }

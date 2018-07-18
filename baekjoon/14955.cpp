@@ -8,20 +8,23 @@
 using namespace std;
 
 struct FlowGraph {
-    int capacity[MAXSIZE][MAXSIZE];
-    int source, sink, level[MAXSIZE], start[MAXSIZE];
+    struct Edge {
+        int idx;
+        int start, end, capacity;
+    };
+
+    vector<Edge> E;
     vector<int> V[MAXSIZE];
+    int source, sink, level[MAXSIZE], start[MAXSIZE];
 
     void setEdge(int u, int v, int c) {
-        if(capacity[u][v] == 0) {
-            capacity[u][v] = c;
-            capacity[v][u] = c;
-            V[u].push_back(v);
-            V[v].push_back(u);
-        } else {
-            capacity[u][v] += c;
-            capacity[v][u] += c;
-        }
+        int n = E.size();
+
+        E.push_back({n, u, v, c});
+        E.push_back({n + 1, v, u, 0});
+
+        V[u].push_back(n);
+        V[v].push_back(n + 1);
     }
 
     void levelGraph() {
@@ -34,8 +37,9 @@ struct FlowGraph {
         while(!q.empty()) {
             int here = q.front(); q.pop();
 
-            for(int next : V[here]) {
-                if(level[next] == -1 && capacity[here][next]) {
+            for(auto edge : V[here]) {
+                int next = E[edge].end;
+                if(level[next] == -1 && E[edge].capacity) {
                     level[next] = level[here] + 1;
                     q.push(next);
                 }
@@ -47,12 +51,14 @@ struct FlowGraph {
         if(u == sink) return minFlow;
 
         for(; start[u] < V[u].size(); start[u]++) {
-            int next = V[u][start[u]];
+            auto edge = E[V[u][start[u]]];
+            int next = edge.end;
 
-            if(level[next] == level[u] + 1 && capacity[u][next]) {
-                long long f = dfs(next, min(minFlow, capacity[u][next]));
+            if(level[next] == level[u] + 1 && edge.capacity) {
+                long long f = dfs(next, min(minFlow, edge.capacity));
                 if(f) {
-                    capacity[u][next] -= f;
+                    E[edge.idx].capacity -= f;
+                    E[edge.idx ^ 1].capacity += f;
                     return f;
                 }
             }
@@ -79,10 +85,10 @@ struct FlowGraph {
 } G;
 
 int n, m;
-struct Edge {
+struct Edge2 {
     int start, end, cost;
-} E[502];
-bool comp(Edge e1, Edge e2) { return e1.cost < e2.cost; }
+} E2[502];
+bool comp(Edge2 e1, Edge2 e2) { return e1.cost < e2.cost; }
 
 int main() {
     cin >> n >> m;
@@ -90,32 +96,28 @@ int main() {
         int s, e, c;
         cin >> s >> e >> c;
 
-        E[i] = {s, e, c};
+        E2[i] = {s, e, c};
     }
-    sort(E, E + m, comp);
+    sort(E2, E2 + m, comp);
 
     int ans = 0;
     for(int i = 0; i < m; i++) {
-        for(int i = 1; i <= n; i++) {
-            for(int next : G.V[i]) {
-                G.capacity[i][next] = 0;
-                G.capacity[next][i] = 0;
-            }
+        for(int i = 1; i <= n; i++) G.V[i].clear();
+        G.E.clear();
 
-            G.V[i].clear();
-        }
-
-        Edge e = E[i];
+        Edge2 e = E2[i];
         G.source = e.start;
         G.sink = e.end;
 
-        for(int j = 0; j < i; j++) {
-            Edge input = E[j];
+        for(int j = 0; j < i && E2[j].cost < e.cost; j++) {
+            Edge2 input = E2[j];
 
             G.setEdge(input.start, input.end, 1);
+            G.setEdge(input.end, input.start, 1);
         }
+        int result = G.maxflow();
 
-        ans += G.maxflow();
+        ans += result;
     }
 
     cout << ans << '\n';

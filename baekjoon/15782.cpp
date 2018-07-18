@@ -71,8 +71,8 @@ int main(){
         child[e].push_back(s);
     }
 
-    int index = 1;
-    make_segment(1, index, 1);
+    int idx = 1;
+    make_segment(1, idx, 1);
 
     for(int i = 1; i <= n; i++) {
         int num;
