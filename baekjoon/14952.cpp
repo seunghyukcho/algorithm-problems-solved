@@ -3,42 +3,85 @@
 
 using namespace std;
 
-int D[5000000], ans, a, b, x;
-int board[5][5], dir[4][4] = {0, 1, 0, -1,
+int a, b;
+int board[4][4], dir[4][4] = {0, 1, 0, -1,
                             1, 1, -1, -1,
                             1, 0, -1, 0,
                             -1, 1, 1, -1};
+int height[4] = {4, 4, 4, 4};
+long long ans;
+bool D[43046721];
 
-int dy() {
-    int index = 0, ret = 0;
-    for(int i = 1; i <= 4; i++) {
-        for(int j = 1; j <= 4; j++) {
-            ret += pow(3, board[j][i]);
-        }
-    }
+int convert() {
+    int ret = 0;
+
+    for(int i = 0; i < 4; i++)
+        for(int j = 0; j < 4; j++) ret += pow(3, i * 4 + j) * board[i][j];
 
     return ret;
 }
 
-void check() {
+int win(int x, int y) {
+    for(int i = 0; i < 4; i++) {
+        int next[4] = {x + dir[i][0], y + dir[i][1], x + dir[i][2], y + dir[i][3]};
 
+        bool check = true;
+        for(int j = 0; j < 4 && check; j++) {
+            if(next[j] < 0 || next[j] >= 4) check = false;
+        }
+
+        if(check) {
+            if(board[x][y] == board[next[0]][next[1]] && board[x][y] == board[next[2]][next[3]]) return board[x][y];
+        }
+    }
+
+    return 0;
 }
 
-void dfs(int player) {
-    check();
+int check(int x, int y) {
+    for(int i = x - 1; i <= x + 1; i++)
+        for(int j = y - 1; j <= y + 1; j++) {
+            int result = win(i, j);
 
-    for(int i = 1; i <= 4; i++) {
-        for(int j = 4; j > 0 && !board[j][i]; j--){
-            if(j) {
-                board[j][i] = player;
-                if(!dy()) dfs((player == 1 ? 2 : 1));
-                board[j][i] = 0;
-            }
+            if(result != 0) return result;
+        }
+
+    return 0;
+}
+
+void dfs(int x, int y, int player) {
+    int here = convert();
+    if(D[here]) return;
+    D[here] = true;
+
+    if(x == a && y == b) {
+        if(check(x, y) == 2) ans++;
+        return;
+    }
+
+    if(check(x, y) != 0) return;
+
+    for(int i = 0; i < 4; i++) {
+        if(height[i] > 0) {
+            height[i]--;
+            board[height[i]][i] = player;
+            dfs(height[i], i, player % 2 + 1);
+            board[height[i]++][i] = 0;
         }
     }
 }
 
-
 int main(){
+    int x;
+    cin >> x >> a >> b;
+    a = 4 - a;
+    b = b - 1;
+    x--;
 
+    board[3][x] = 1;
+    height[x]--;
+    dfs(3, x, 2);
+    cout << ans << '\n';
+
+    return 0;
 }
