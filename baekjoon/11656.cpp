@@ -2,13 +2,13 @@
 #include<vector>
 #include<algorithm>
 #include<cstring>
-#define MAXN 500005
+#define MAXN 1010
 
 using namespace std;
 
 struct Suffix {
     string s;
-    int SA[MAXN], N, LCP[MAXN];
+    int SA[MAXN], N;
 
     void suffix_array() {
         int ord[MAXN], nord[MAXN], cnt[MAXN], aux[MAXN], pnt = 1;
@@ -43,21 +43,6 @@ struct Suffix {
             memcpy(ord, nord, sizeof(int) * N);
         }
     }
-
-    void lcp(){
-		vector<int> rev(N + 1, 0);
-        for(int i = 0; i < N; i++) rev[SA[i]] = i;
-
-        int h = 0;
-		for(int i = 0; i < N; i++){
-			if(rev[i]){
-				int prv = SA[rev[i] - 1];
-				while(s[prv + h] == s[i + h]) h++;
-				LCP[rev[i]] = h;
-			}
-			h = max(h - 1, 0);
-		}
-	}
 } S;
 
 int main(){
@@ -68,11 +53,10 @@ int main(){
     S.N = S.s.size();
 
     S.suffix_array();
-    S.lcp();
-    for(int i = 0; i < S.N; i++) cout << S.SA[i] + 1 << ' ';
-    cout << '\n' << "x ";
-    for(int i = 1; i < S.N; i++) cout << S.LCP[i] << ' ';
-    cout << '\n';
+    for(int i = 0; i < S.N; i++) {
+        for(int j = S.SA[i]; j < S.s.size(); j++) cout << S.s[j];
+        cout << '\n';
+    }
 
     return 0;
 }

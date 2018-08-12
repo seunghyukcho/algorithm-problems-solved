@@ -64,15 +64,14 @@ int main(){
     ios::sync_with_stdio(false);
     cin.tie(NULL);
 
-    cin >> S.s;
-    S.N = S.s.size();
+    cin >> S.N >> S.s;
 
     S.suffix_array();
     S.lcp();
-    for(int i = 0; i < S.N; i++) cout << S.SA[i] + 1 << ' ';
-    cout << '\n' << "x ";
-    for(int i = 1; i < S.N; i++) cout << S.LCP[i] << ' ';
-    cout << '\n';
+
+    int ans = 0;
+    for(int i = 1; i < S.N; i++) ans = max(ans, S.LCP[i]);
+    cout << ans << '\n';
 
     return 0;
 }
