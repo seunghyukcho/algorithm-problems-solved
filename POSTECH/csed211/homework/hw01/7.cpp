@@ -6,9 +6,15 @@ float_bits float_half(float_bits f) {
     int c = 0xff << 23;
 
     if((f & c) != c) {
-        int exp = ((f & c) >> 24) << 23;
+        if((f & c) == 0x0) {
+            int msb = f & (1 << 31);
+            f = ((f << 1) >> 2) | msb;
+        }
+        else {
+            int exp = (((f & c) >> 23) - 1) << 23;
 
-        f = ~(~f | c) | exp;
+            f = ~(~f | c) | exp;
+        }
     }
 
     return f;
