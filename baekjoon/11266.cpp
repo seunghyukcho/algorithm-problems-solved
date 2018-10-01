@@ -4,13 +4,22 @@ using namespace std;
 
 const int MAXV = 10002;
 struct DFSTree {
-    vector<int> V[MAXV];
-    int v, e, visit[MAXV], level[MAXV], back[MAXV], child[MAXV];
+    struct Edge {
+        int idx, start, end;
+        Edge(int idx, int start, int end) {
+            this->idx = idx;
+            this->start = start;
+            this->end = end;
+        }
+    };
+
+    vector<Edge> V[MAXV];
+    int v, e, visit[MAXV], level[MAXV], back[MAXV], child[MAXV], edge = 1;
     bool isRoot[MAXV];
 
     void setEdge(int u, int v) {
-        V[u].push_back(v);
-        V[v].push_back(u);
+        V[u].push_back(Edge(edge++, u, v));
+        V[v].push_back(Edge(edge++, v, u));
     }
 
     void makeDFSTree() {
@@ -28,7 +37,9 @@ struct DFSTree {
         visit[here] = count++;
 
         int b = here;
-        for(int next : V[here]) {
+        for(auto edge : V[here]) {
+            int next = edge.end;
+
             if(!visit[next]) {
                 child[here]++;
                 int low = dfs(next, l + 1, count);
@@ -52,7 +63,9 @@ struct DFSTree {
         if(isRoot[v])
             return child[v] >= 2;
         else {
-            for(int next : V[v]) {
+            for(auto edge : V[v]) {
+                int next = edge.end;
+                
                 if(level[next] < level[v]) continue;
                 if(level[next] == level[v] + 1 && level[back[next]] >= level[v]) return true;
             }
