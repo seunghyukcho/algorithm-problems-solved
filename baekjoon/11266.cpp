@@ -13,6 +13,10 @@ struct DFSTree {
         }
     };
 
+    bool comp(Edge e1, Edge e2) {
+        return e1.start == e2.start ? e1.end < e2.end : e1.start < e2.start;
+    }
+
     vector<Edge> V[MAXV];
     int v, e, visit[MAXV], level[MAXV], back[MAXV], child[MAXV], edge = 1;
     bool isRoot[MAXV];
@@ -65,13 +69,28 @@ struct DFSTree {
         else {
             for(auto edge : V[v]) {
                 int next = edge.end;
-                
+
                 if(level[next] < level[v]) continue;
                 if(level[next] == level[v] + 1 && level[back[next]] >= level[v]) return true;
             }
 
             return false;
         }
+    }
+
+    vector<Edge> getCutEdge() {
+        vector<Edge> ret;
+
+        for(int i = 1; i <= v; i++) {
+            for(auto edge : V[i]) {
+                int next = edge.end;
+                if(level[i] + 1 == level[next] && next == back[next]) {
+                    ret.push_back(edge);
+                }
+            }
+        }
+
+        return ret;
     }
 } T;
 
