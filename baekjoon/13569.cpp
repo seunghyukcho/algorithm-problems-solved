@@ -1,158 +1,169 @@
-#include<iostream>
-#include<vector>
-#include<algorithm>
-#include<queue>
-#include<cmath>
+#include<bits/stdc++.h>
 
 using namespace std;
 
-vector<vector<int> > graph(500);
-long long flow[500][500], capacity[500][500], level[500], demand[500][2];
-double num[300][300];
-bool visited[500];
-int n, m;
+const int MAXSIZE = 500, MAX = 1000000000;
+struct FlowGraph {
+    struct Edge {
+        int idx;
+        int start, end, capacity;
+    };
 
-long long min(long long a, long long b){ return a < b ? a : b; }
+    vector<Edge> E;
+    vector<int> V[MAXSIZE];
+    int source, sink, level[MAXSIZE], start[MAXSIZE];
 
-void bfs(int start){
-    for(int i = 0; i < n + m + 4; i++) level[i] = -1;
-    level[start] = 0;
+    void setEdge(int u, int v, int c) {
+        int n = E.size();
 
-    queue<pair<int, int> > q;
-    q.push({start, 0});
+        E.push_back({n, u, v, c});
+        E.push_back({n + 1, v, u, 0});
 
-    while(!q.empty()){
-        auto here = q.front(); q.pop();
-
-        for(auto next : graph[here.first]){
-            if(level[next] == -1 && (capacity[here.first][next] - flow[here.first][next] > 0
-            || flow[next][here.first] > 0)){
-                level[next] = here.second + 1;
-                q.push({next, here.second + 1});
-            }
-        }
+        V[u].push_back(n);
+        V[v].push_back(n + 1);
     }
-}
 
-long long dfs(int here, long long minflow){
-    if(here == n + m + 3) return minflow;
-    for(auto next : graph[here]){
-        if(!visited[next] && level[next] - level[here] == 1){
-            if(int f = capacity[here][next] - flow[here][next] > 0){
-                visited[next] = true;
-                int result = dfs(next, min(minflow, f));
-                if(result){
-                    flow[here][next] += result;
-                    return result;
-                }
-            }
+    void levelGraph() {
+        queue<int> q;
+        for(int i = 0; i < MAXSIZE; i++) level[i] = -1;
 
-            if(int f = flow[next][here] > 0){
-                visited[next] = true;
-                int result = dfs(next, min(minflow, f));
-                if(result){
-                    flow[next][here] -= result;
-                    return result;
+        level[source] = 0;
+        q.push(source);
+
+        while(!q.empty()) {
+            int here = q.front(); q.pop();
+
+            for(auto edge : V[here]) {
+                int next = E[edge].end;
+                if(level[next] == -1 && E[edge].capacity) {
+                    level[next] = level[here] + 1;
+                    q.push(next);
                 }
             }
         }
     }
 
-    return 0;
-}
+    long long dfs(int u, int minFlow = MAX) {
+        if(u == sink) return minFlow;
 
-long long max_flow(){
-    long long ret = 0;
+        for(; start[u] < V[u].size(); start[u]++) {
+            auto edge = E[V[u][start[u]]];
+            int next = edge.end;
 
-    while(true){
-        for(int i = 0; i < n + m + 4; i++) visited[i] = false;
-        bfs(n + m + 2);
+            if(level[next] == level[u] + 1 && edge.capacity) {
+                long long f = dfs(next, min(minFlow, edge.capacity));
+                if(f) {
+                    E[edge.idx].capacity -= f;
+                    E[edge.idx ^ 1].capacity += f;
+                    return f;
+                }
+            }
+        }
 
-        if(level[n + m + 3] == -1) break;
-        ret += dfs(n + m + 2, 1e9);
+        return 0;
     }
 
-    return ret;
-}
+    long long maxflow() {
+        long long ret = 0;
+        while(1) {
+            levelGraph();
+            if(level[sink] == -1) break;
+            for(int i = 0; i < MAXSIZE; i++) start[i] = 0;
+            while(1) {
+                long long flow = dfs(source);
+                if(flow == 0) break;
+                ret += flow;
+            }
+        }
+
+        return ret;
+    }
+} G;
+
+int n, m, indemand[MAXSIZE], outdemand[MAXSIZE], demandsum, demandrowsum, demandcolsum;
+double experiment[202][202], row[202], col[202];
 
 int main(){
-    long long total_demand = 0;
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
     cin >> n >> m;
+    for(int i = 1; i <= n; i++) {
+        for(int j = 1; j <= m; j++) cin >> experiment[i][j];
+        cin >> row[i];
+    }
+    for(int i = 1; i <= m; i++) cin >> col[i];
 
-    for(int i = 1; i <= n; i++){
-        double input;
-        for(int j = 1; j <= m; j++){
-            cin >> input;
-            num[i][j] = input;
+    G.source = n + m + 2;
+    G.sink = n + m + 3;
 
-            int f = floor(input);
-            int c = ceil(input);
+    for(int i = 1; i <= n; i++) {
+        for(int j = 1; j <= m; j++) {
+            int capacity = ceil(experiment[i][j]), demand = floor(experiment[i][j]);
+            indemand[n + j] += demand;
+            outdemand[i] += demand;
+            demandsum += demand;
 
-            graph[i].push_back(i + j);
-            graph[i + j].push_back(i);
-
-            capacity[i][i + j] = c - f;
-            demand[i][1] += f;
-            demand[i + j][0] += f;
+            G.setEdge(i, n + j, capacity - demand);
         }
-
-        cin >> input;
-        num[i][m + 1] = input;
-        int f = floor(input);
-        int c = ceil(input);
-
-        graph[0].push_back(i);
-        graph[i].push_back(0);
-
-        capacity[0][i] = c - f;
-        demand[0][1] += f;
-        demand[i][0] += f;
     }
 
-    for(int i = 1; i <= m; i++){
-        double input;
-        cin >> input;
+    for(int i = 1; i <= n; i++) {
+        int capacity = ceil(row[i]), demand = floor(row[i]);
+        indemand[i] += demand;
+        demandsum += demand;
+        demandrowsum += demand;
 
-        num[n + 1][i] = input;
-        int f = floor(input);
-        int c = ceil(input);
-
-        graph[n + i].push_back(n + m + 1);
-        graph[n + m + 1].push_back(n + i);
-
-        capacity[n + i][n + m + 1] = c - f;
-        demand[n + i][1] = f;
-        demand[n + m + 1][0] = f;
+        G.setEdge(0, i, capacity - demand);
+        G.setEdge(G.source, i, indemand[i]);
+        G.setEdge(i, G.sink, outdemand[i]);
     }
 
-    for(int i = 0; i <= n + m + 1; i++){
-        graph[n + m + 2].push_back(i);
-        graph[i].push_back(n + m + 2);
+    for(int i = 1; i <= m; i++) {
+        int capacity = ceil(col[i]), demand = floor(col[i]);
+        outdemand[n + i] += demand;
+        demandsum += demand;
+        demandcolsum += demand;
 
-        capacity[n + m + 2][i] = demand[i][0];
-        total_demand += demand[i][0];
-
-        graph[n + m + 3].push_back(i);
-        graph[i].push_back(n + m + 3);
-
-        capacity[i][n + m + 3] = demand[i][1];
+        G.setEdge(n + i, n + m + 1, capacity - demand);
+        G.setEdge(G.source, n + i, indemand[n + i]);
+        G.setEdge(n + i, G.sink, outdemand[n + i]);
     }
 
-    graph[n + m + 1].push_back(0);
-    graph[0].push_back(n + m + 1);
-    capacity[n + m + 1][0] = 1e9;
+    G.setEdge(n + m + 1, 0, MAX);
+    G.setEdge(G.source, n + m + 1, demandcolsum);
+    G.setEdge(0, G.sink, demandrowsum);
 
-    max_flow();
+    int maxflow = G.maxflow();
 
-    for(int i = 1; i <= n; i++){
-        for(int j = 1; j <= m; j++) cout << flow[i][i + j] + (long long)floor(num[i][j])<< ' ';
-        cout << flow[0][i] + (long long)floor(num[n + 1][i]) << '\n';
+    for(int i = 0; i <= n; i++) {
+        for(int idx : G.V[i]) {
+            auto edge = G.E[idx];
+            experiment[i][edge.end - n] = ceil(experiment[i][edge.end - n]) - edge.capacity;
+        }
     }
 
-    for(int i = 1; i <= m; i++)
-        cout << flow[n + 1][n + i + 1] + (long long)floor(num[n + 1][i]) << ' ';
+    for(int idx : G.V[0]) {
+        auto edge = G.E[idx];
 
+        row[edge.end] = ceil(row[edge.end]) - edge.capacity;
+    }
+
+    for(int i = 1; i <= m; i++) {
+        for(int idx : G.V[n + i]) {
+            auto edge = G.E[idx];
+            if(edge.end == n + m + 1) {
+                col[i] = ceil(col[i]) - edge.capacity;
+                break;
+            }
+        }
+    }
+
+    for(int i = 1; i <= n; i++) {
+        for(int j = 1; j <= m; j++) cout << experiment[i][j] << ' ';
+        cout << row[i] << '\n';
+    }
+    for(int i = 1; i <= m; i++) cout << col[i] << ' ';
     cout << '\n';
 
-    return 0;
 }
