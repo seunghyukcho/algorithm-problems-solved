@@ -1,41 +1,20 @@
-#include<iostream>
-#include<vector>
-#include<algorithm>
-#include<queue>
+#include<bits/stdc++.h>
 
 using namespace std;
 
 const int MAXV = 100002, MAXE = 100002;
 struct Tree {
-    struct Edge {
-        int idx, start, end, cost;
-    };
-    struct Vertex {
-        int parent, level;
-        vector<int> connected;
-    } V[MAXV];
+    int n, root, sparse[MAXV][100], level[MAXV], parent[MAXV];
+    vector<int> V[MAXV];
 
-    int n, root, sparse[MAXV][100];
-    vector<Edge> E;
-
-    void setEdge(int u, int v, int c) {
-        int idx = E.size();
-        Edge edge1, edge2;
-
-        edge1.idx = idx, edge2.idx = idx + 1;
-        edge1.start = edge2.end = u;
-        edge1.end = edge2.start = v;
-        edge1.cost = edge2.cost = c;
-
-        V[u].connected.push_back(idx);
-        V[v].connected.push_back(idx + 1);
-        E.push_back(edge1);
-        E.push_back(edge2);
+    void setEdge(int u, int v) {
+        V[u].push_back(v);
+        V[v].push_back(u);
     }
 
     void setRoot(int root) {
         this->root = root;
-        V[root].level = 0;
+        level[root] = 0;
         setRootedTree();
     }
 
@@ -46,12 +25,10 @@ struct Tree {
         while(!q.empty()) {
             int here = q.front(); q.pop();
 
-            for(auto edge : V[here].connected) {
-                int next = E[edge].end;
-
-                if(next != V[here].parent) {
-                    V[next].parent = here;
-                    V[next].level = V[here].level + 1;
+            for(int next : V[here]) {
+                if(next != parent[here]) {
+                    parent[next] = here;
+                    level[next]= level[here] + 1;
                     q.push(next);
                 }
             }
@@ -61,7 +38,7 @@ struct Tree {
     int table(int v, int n) {
         if(sparse[v][n]) return sparse[v][n];
 
-        return sparse[v][n] = (n == 0 ? V[v].parent : table(table(v, n - 1), n - 1));
+        return sparse[v][n] = (n == 0 ? parent[v] : table(table(v, n - 1), n - 1));
     }
 
     int findParent(int v, int n) {
@@ -73,14 +50,14 @@ struct Tree {
 
     int LCA(int v1, int v2) {
         if(v1 == v2) return v1;
-        if(V[v1].level > V[v2].level) swap(v1, v2);
+        if(level[v1] > level[v2]) swap(v1, v2);
 
-        int diff = V[v2].level - V[v1].level;
+        int diff = level[v2] - level[v1];
         v2 = findParent(v2, diff);
 
         if(v1 == v2) return v1;
 
-        int start = 1, end = V[v1].level;
+        int start = 1, end = level[v1];
         while(start < end) {
             int mid = (start + end) / 2;
 
@@ -107,7 +84,7 @@ int main(){
     for(int i = 0; i < T.n - 1; i++) {
         int u, v;
         cin >> u >> v;
-        T.setEdge(u, v, 1);
+        T.setEdge(u, v);
     }
     T.setRoot(1);
 
