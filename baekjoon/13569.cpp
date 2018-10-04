@@ -80,7 +80,7 @@ struct FlowGraph {
     }
 } G;
 
-int n, m, indemand[MAXSIZE], outdemand[MAXSIZE], demandsum, demandrowsum, demandcolsum;
+int n, m, indemand[MAXSIZE], outdemand[MAXSIZE], demandsum;
 double experiment[202][202], row[202], col[202];
 
 int main(){
@@ -88,82 +88,73 @@ int main(){
     cin.tie(NULL);
 
     cin >> n >> m;
+
+    G.source = n + m + 2, G.sink = n + m + 3;
     for(int i = 1; i <= n; i++) {
         for(int j = 1; j <= m; j++) cin >> experiment[i][j];
         cin >> row[i];
     }
     for(int i = 1; i <= m; i++) cin >> col[i];
 
-    G.source = n + m + 2;
-    G.sink = n + m + 3;
-
     for(int i = 1; i <= n; i++) {
+        int capacity, demand;
         for(int j = 1; j <= m; j++) {
-            int capacity = ceil(experiment[i][j]), demand = floor(experiment[i][j]);
-            indemand[n + j] += demand;
+            capacity = ceil(experiment[i][j]), demand = floor(experiment[i][j]);
             outdemand[i] += demand;
-            demandsum += demand;
+            indemand[n + j] += demand;
 
             G.setEdge(i, n + j, capacity - demand);
         }
-    }
 
-    for(int i = 1; i <= n; i++) {
-        int capacity = ceil(row[i]), demand = floor(row[i]);
+        capacity = ceil(row[i]), demand = floor(row[i]);
+        outdemand[0] += demand;
         indemand[i] += demand;
-        demandsum += demand;
-        demandrowsum += demand;
 
         G.setEdge(0, i, capacity - demand);
-        G.setEdge(G.source, i, indemand[i]);
-        G.setEdge(i, G.sink, outdemand[i]);
     }
 
     for(int i = 1; i <= m; i++) {
         int capacity = ceil(col[i]), demand = floor(col[i]);
         outdemand[n + i] += demand;
-        demandsum += demand;
-        demandcolsum += demand;
+        indemand[n + m + 1] += demand;
 
         G.setEdge(n + i, n + m + 1, capacity - demand);
-        G.setEdge(G.source, n + i, indemand[n + i]);
-        G.setEdge(n + i, G.sink, outdemand[n + i]);
+    }
+
+    for(int i = 0; i <= n + m + 1; i++) {
+        demandsum += indemand[i];
+        G.setEdge(G.source, i, indemand[i]);
+        G.setEdge(i, G.sink, outdemand[i]);
     }
 
     G.setEdge(n + m + 1, 0, MAX);
-    G.setEdge(G.source, n + m + 1, demandcolsum);
-    G.setEdge(0, G.sink, demandrowsum);
 
-    G.maxflow();
+    int maxflow = G.maxflow();
+    assert(maxflow == demandsum);
 
-    for(int i = 0; i <= n; i++) {
-        for(int idx : G.V[i]) {
-            auto edge = G.E[idx];
-            experiment[i][edge.end - n] = ceil(experiment[i][edge.end - n]) - edge.capacity;
-        }
+    for(int edge : G.V[0]) {
+        int next = G.E[edge].end;
+        if(next >= 1 && next <= n) row[next] = ceil(row[next]) - G.E[edge].capacity;
     }
 
-    for(int idx : G.V[0]) {
-        auto edge = G.E[idx];
-
-        row[edge.end] = ceil(row[edge.end]) - edge.capacity;
+    for(int edge : G.V[n + m + 1]) {
+        int next = G.E[edge].end;
+        if(next >= n + 1 && next <= n + m) col[next - n] = floor(col[next - n]) + G.E[edge].capacity;
     }
 
-    for(int i = 1; i <= m; i++) {
-        for(int idx : G.V[n + i]) {
-            auto edge = G.E[idx];
-            if(edge.end == n + m + 1) {
-                col[i] = ceil(col[i]) - edge.capacity;
-                break;
-            }
+    for(int i = 1; i <= n; i++) {
+        for(int edge : G.V[i]) {
+            int next = G.E[edge].end;
+            if(next >= n + 1 && next <= n + m) experiment[i][next - n] = ceil(experiment[i][next - n]) - G.E[edge].capacity;
         }
     }
 
     for(int i = 1; i <= n; i++) {
-        for(int j = 1; j <= m; j++) cout << experiment[i][j] << ' ';
+        for(int j = 1; j <= m; j++) {
+            cout << experiment[i][j] << ' ';
+        }
         cout << row[i] << '\n';
     }
     for(int i = 1; i <= m; i++) cout << col[i] << ' ';
     cout << '\n';
-
 }

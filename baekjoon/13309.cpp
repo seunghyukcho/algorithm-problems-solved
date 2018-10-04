@@ -2,7 +2,7 @@
 
 using namespace std;
 
-const int MAXN = 100002;
+const int MAXN = 200002;
 struct SegmentTree {
     struct Node {
         int s, t, cost;
@@ -20,14 +20,14 @@ struct SegmentTree {
             if(here < s || here > t) return cost;
             if(s == t) return cost = val;
 
-            return cost = max(left->update(here, val), right->update(here, val));
+            return cost = min(left->update(here, val), right->update(here, val));
         }
 
         int get(int start, int end) {
             if(start <= s && t <= end) return cost;
-            if(end < s || t < start) return 0;
+            if(end < s || t < start) return 2;
 
-            return max(left->get(start, end), right->get(start, end));
+            return min(left->get(start, end), right->get(start, end));
         }
     } *root;
 
@@ -123,8 +123,8 @@ struct HLD {
     }
 
     void update(int u, int v, int val) {
+        if(v == 1) return;
         if(parent[u] == v) swap(u, v);
-        //cout << "check " << u << ' ' << v << ' ' << get_index(v) << '\n';
 
         segments->update(get_index(v), val);
     }
@@ -132,11 +132,11 @@ struct HLD {
     int query(int u, int v) {
         int lca = LCA(u, v);
 
-        return max(query2(lca, u), query2(lca, v));
+        return min(query2(lca, u), query2(lca, v));
     }
 
     int query2(int s, int t) {
-        if(s == t) return 0;
+        if(s == t) return 2;
 
         if(path[s][0] == path[t][0]) {
             return segments->get(get_index(s) + 1, get_index(t));
@@ -144,45 +144,41 @@ struct HLD {
 
         int top_edge = paths[path[t][0]].second;
 
-        return max(query2(s, parent[top_edge]), segments->get(get_index(top_edge), get_index(t)));
+        return min(query2(s, parent[top_edge]), segments->get(get_index(top_edge), get_index(t)));
     }
 
 } *hld;
 
-int init[MAXN][3];
+int n, q, p[200002];
+bool has_parent[200002];
 
-int main(){
-    int n, m;
+int main() {
     ios::sync_with_stdio(false);
     cin.tie(NULL);
 
-    cin >> n;
+    cin >> n >> q;
     hld = new HLD(n);
-    for(int i = 1; i < n; i++) {
-        cin >> init[i][0] >> init[i][1] >> init[i][2];
+    for(int i = 2; i <= n; i++) {
+        cin >> p[i];
 
-        hld->child[init[i][0]].push_back(init[i][1]);
-        hld->child[init[i][1]].push_back(init[i][0]);
+        hld->child[i].push_back(p[i]);
+        hld->child[p[i]].push_back(i);
     }
 
     hld->dfs(1);
     hld->decomposition(1, 1);
 
-    for(int i = 1; i < n; i++) {
-        hld->update(init[i][0], init[i][1], init[i][2]);
-    }
+    for(int i = 2; i <= n; i++) hld->update(p[i], i, 1);
 
-    //for(int i = 1; i <= n; i++) cout << hld->path[i][0] << ' ' << hld->paths[hld->path[i][0]].second << ' ' << hld->paths[hld->path[i][0]].first << ' ' << hld->path[i][1] << ' ' << hld->get_index(i) << '\n';
-    //cout << '\n';
+    for(int i = 0; i < q; i++) {
+        int b, c, d;
+        cin >> b >> c >> d;
 
-    cin >> m;
-    for(int i = 1; i <= m; i++) {
-        int u, v, w;
-        cin >> u >> v >> w;
-        if(u == 1) {
-            hld->update(init[v][0], init[v][1], w);
-            init[v][2] = w;
+        int result = hld->query(b, c);
+        cout << (result == 1 ? "YES" : "NO") << '\n';
+
+        if(d == 1) {
+            result == 1 ? hld->update(hld->parent[b], b, 0) : hld->update(hld->parent[c], c, 0);
         }
-        else cout << hld->query(v, w) << '\n';
     }
 }
