@@ -134,7 +134,7 @@ int main(){
     G.setEdge(G.source, n + m + 1, demandcolsum);
     G.setEdge(0, G.sink, demandrowsum);
 
-    int maxflow = G.maxflow();
+    G.maxflow();
 
     for(int i = 0; i <= n; i++) {
         for(int idx : G.V[i]) {

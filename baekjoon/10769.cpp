@@ -1,12 +1,9 @@
-#include<iostream>
-#include<string>
+#include<bits/stdc++.h>
 
 using namespace std;
 
-string p, s;
-int f[4];
-
-void failure_function() {
+vector<int> failure_function(string p) {
+    vector<int> f(p.size() + 1);
     for(int i = 0; i < p.size(); i++) f[i] = 0;
 
     int j = 0;
@@ -15,10 +12,13 @@ void failure_function() {
 
         if(p[i] == p[j]) f[i] = ++j;
     }
+
+    return f;
 }
 
-int kmp() {
+int kmp(string s, string p) {
     int ret = 0, j = 0;
+    vector<int> f = failure_function(p);
 
     for(int i = 0; i < s.size(); i++) {
         while(j > 0 && s[i] != p[j]) j = f[j - 1];
@@ -35,15 +35,14 @@ int kmp() {
 }
 
 int main(){
+    string s, p;
     getline(cin, s, '\n');
 
     p = ":-)";
-    failure_function();
-    int smile = kmp();
+    int smile = kmp(s, p);
 
     p = ":-(";
-    failure_function();
-    int shy = kmp();
+    int shy = kmp(s, p);
 
     if(smile == shy) {
         if(smile == 0) cout << "none\n";
