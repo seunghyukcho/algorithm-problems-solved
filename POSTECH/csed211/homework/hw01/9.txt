@@ -1,3 +1,0 @@
-Float has 32bits so the total available representation is 2^32.
-However, exp with 0xff and frac not zero, is NaN that is not meaningful.
-So, the total meaningful representation is 2^32 - 2 * (2^23 - 1). (I think infinity is meaningful so I included it).
