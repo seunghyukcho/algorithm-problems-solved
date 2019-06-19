@@ -9,29 +9,27 @@ int nxt[1002][1002];
 
 pair<int, int> dp(int idx, int sum)
 {
-	if(idx == n || sum == 0)
+	if(idx == n)
 		return { 0, 0 };
 
 	auto& ret = cache[idx][sum];
 	if(ret.first != -1)
 		return ret;
 
-	for(int i = idx + 1; i < n; i++)
+	for(int i = idx + 1; i <= n; i++)
 	{
-		if(arr[i] <= sum)
+		if(arr[i] <= sum - arr[idx])
 		{
-			auto result = dp(i, sum - arr[i]);
-			if(result.first == -1)
-				continue;
+			auto result = dp(i, sum - arr[idx]);
+			result.first += arr[idx];
 
-			result.first += arr[i];
 			if(result.first > ret.first)
 			{
 				ret = result;
 				nxt[idx][sum] = i;
 			}
 
-			else if(result.first == ret.first && result.second < ret.second)
+			else if(result.first == ret.first && result.second > ret.second)
 			{
 				ret = result;
 				nxt[idx][sum] = i;
@@ -40,6 +38,9 @@ pair<int, int> dp(int idx, int sum)
 	}
 
 	ret.second += 1;
+
+	// cout << idx << ' ' << sum << ' ' << ret.first << ' ' << ret.second << ' ' << nxt[idx][sum] << '\n';
+
 	return ret;
 }
 
@@ -56,35 +57,42 @@ int main()
 			cin >> arr[i];
 			for(int j = 0; j < 1002; j++)
 			{
-				cache[i][j] = { -1, 1 };
+				cache[i][j] = { -1, -1 };
 				nxt[i][j] = -1;
 			}
 		}
+		arr[n] = 0;
 
-		pair<int, int> ans = { 0, 0 };
+		pair<int, int> ans = { -1, 0 };
 		int startIdx;
 		for(int i = 0; i < n; i++)
+		{
 			if(arr[i] <= t)
 			{
-				auto result = dp(0, t - arr[i]);
+				auto result = dp(i, t);
 				if(result.first > ans.first)
 				{
 					ans = result;
 					startIdx = i;
 				}
 
-				else if(result.first == ans.first && result.second < ans.second)
+				else if(result.first == ans.first && result.second > ans.second)
 				{
 					ans = result;
 					startIdx = i;
 				}
 			}
-
-		for(int here = startIdx; here != -1; t -= arr[here])
+		}
+		
+		for(int here = startIdx; here != n;)
 		{
 			cout << arr[here] << ' ';
+
+			int prev = here;
 			here = nxt[here][t];
+			t -= arr[prev];
 		}
+		
 
 		cout << ans.first << '\n';
 	}
