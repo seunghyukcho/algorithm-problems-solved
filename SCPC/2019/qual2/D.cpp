@@ -8,55 +8,26 @@
 
 using namespace std;
 
+typedef pair<int, int> coor;
+
 int T, N, M, map[52][502];
-int A[MAX], B[MAX], level[MAX];
-bool visited[MAX];
-vector<int> graph[MAX];
+string s;
+vector<coor> ans;
 
-void bfs()
+int count_bombs(int x, int y)
 {
-	queue<int> q;
-
-	for(int i = 0; i < (N - 2) * (M - 2); i++)
-	{
-		if(!visited[i])
-		{
-			level[i] = 0;
-			q.push(i);
-		}
-		else
-			level[i] = INT_MAX;
-	}
-
-	while(!q.empty())
-	{
-		int here = q.front(); q.pop();
-		for(int next : graph[here])
-		{
-			if(B[next] != -1 && level[B[next]] == INT_MAX)
-			{
-				level[B[next]] = level[here] + 1;
-				q.push(B[next]);
-			}
-		}
-	}
+	int ret = 0;
+	for(int r = x - 1; r <= x + 1; r++)
+		for(int c = y - 1; c <= y + 1; c++)
+			ret += map[r][c];
+	return ret;
 }
 
-bool dfs(int here)
+void convert_bombs(int x, int y)
 {
-	for(int next : graph[here])
-	{
-		if(B[next] == -1 || (level[B[next]] == level[here] + 1 && dfs(B[next])))
-		{
-			visited[here] = true;
-			B[next] = here;
-			A[here] = next;
-
-			return true;
-		}
-	}
-
-	return false;
+	for(int r = x - 1; r <= x + 1; r++)
+		for(int c = y - 1; c <= y + 1; c++)
+			map[r][c] = 0;
 }
 
 int main()
@@ -64,54 +35,60 @@ int main()
 	cin >> T;
 	for(int t = 1; t <= T; t++)
 	{
-		int ans = 0;
+		ans.clear();
 		cout << "Case #" << t << '\n';
 		cin >> M >> N;
+
 		for(int i = 0; i < M; i++)
 		{
-				string s;
-				cin >> s;
-				for(int j = 0; j < N; j++)
-				{
-					map[i][j] = s[j] - '0';
-					B[i * N + j + 1] = -1;
-				}
+			cin >> s;
+			for(int j = 0; j < N; j++)
+				map[i][j] = s[j] - '0';
 		}
-			
-
-		for(int i = 1; i < M - 1; i++)
-			for(int j = 1; j < N - 1; j++)
+		
+		for(int r = 0; r < M - 1; r++)
+			for(int c = 0; c < N; c++)
 			{
-				int here = (i - 1) * (N - 2) + j;
-				graph[here].clear();
-				A[here] = -1, visited[here] = false;
+				if(map[r][c] == 0) continue;
 
-				for(int r = -1; r < 2; r++)
-					for(int c = -1; c < 2; c++)
+				int mx = -1;
+				coor result;
+				for(int dir = -1; dir < 2; dir++)
+				{
+					if(c + dir < 0 || c + dir >= N)
+						continue;
+					int cnt = count_bombs(r + 1, c + dir);
+					if(mx < cnt)
 					{
-						int next = (i + r) * N + (j + c) + 1;
-						if(map[i + r][j + c] == 1)
-							graph[here].push_back(next);
+						mx = cnt;
+						result = { r + 1, c + dir };
 					}
+				}
+
+				convert_bombs(result.first, result.second);
+				ans.push_back(result);
 			}
 
-		while(1)
+		for(int c = 0; c < N; c++)
 		{
-			bfs();
-			int flow = 0;
-			for(int i = 1; i <= (N - 2) * (M - 2); i++)
-				if(!visited[i] && dfs(i))
-					flow++;
-			if(flow == 0)
-				break;
-			ans += flow;
+			if(map[M - 1][c] == 0) continue;
+
+			if(c == 0)
+			{
+				convert_bombs(M - 1, 1);
+				ans.push_back({ M - 1, 1 });
+			}
+			else if(c == N - 1)
+				ans.push_back({ M - 1, N - 2 });
+			else
+			{
+				convert_bombs(M - 1, c);
+				ans.push_back({ M - 1, c });
+			}
 		}
 
-		cout << ans << '\n';
-		for(int i = 1; i <= (N - 2) * (M - 2); i++)
-		{
-			if(visited[i])
-				cout << (i - 1) / (N - 2) + 1 << ' ' << (i - 1) % (N - 2) + 1 << '\n';
-		}
+		cout << ans.size() << '\n';
+		for(coor p : ans)
+			cout << p.first << ' ' << p.second << '\n';
 	}
 }
