@@ -20,37 +20,44 @@ int dp(int n, int k)
 	return ret = dp(dp(n, k - 1), k - 1);
 }
 
+int findParent(int u, int n)
+{
+	for(int i = 0; (1 << i) <= n; i++)
+	{
+		if((n & (1 << i)) != 0)
+			u = dp(u, i);
+	}
+
+	return u;
+}
+
 int lca(int u, int v)
 {
 	if(level[u] < level[v])
 		return lca(v, u);
 
 	int diff = level[u] - level[v];
-	for(int i = 0; (1 << i) <= diff; i++)
-	{
-		if((diff & (1 << i)) != 0)
-			u = dp(u, i);
-	}
+	u = findParent(u, diff);
 
 	if(u == v)
 		return u;
 
-	int start = 0, end = 15; 
+	int start = 1, end = level[u]; 
 	while(start < end)
 	{
 		int mid = (start + end) / 2;
-		int p1 = dp(u, mid), p2 = dp(v, mid);
+		int p1 = findParent(u, mid), p2 = findParent(v, mid);
 
 		if(p1 == p2)
 			end = mid;
 		else
 		{
 			u = p1, v = p2;
-			end -= mid + 1;
+			end -= mid;
 		}
 	}
 
-	return dp(u, start);
+	return findParent(u, start);
 }
 
 void dfs(int here, int prev)
@@ -68,7 +75,9 @@ void dfs(int here, int prev)
 
 int main()
 {
-	ios::sync_with
+	ios::sync_with_stdio(false);
+	cin.tie(NULL);
+
 	cin >> T;
 	for(int t = 1; t <= T; t++)
 	{
