@@ -1,91 +1,96 @@
-#define _USE_MATH_DEFINES
-#include <math.h>
 #include <iostream>
+#include <cmath>
 #include <complex>
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <cstdlib>
+
+#define _USE_MATH_DEFINES
 
 using namespace std;
 
 typedef complex<double> base;
 
-void fft(vector<base> &a, bool inv) {
-    int n = (int) a.size();
-    for (int i = 1, j = 0; i < n; i++) {
-        int bit = n >> 1;
-        while (!((j ^= bit) & bit)) bit >>= 1;
-        if (i < j) swap(a[i], a[j]);
+void fft(vector<base>& input, vector<base>& output, base w)
+{
+    int n = input.size();
+    output.resize(n);
+    
+    if(input.size() == 1)
+    {
+        output[0] = input[0];
+        return;
     }
-    for (int i = 1; i < n; i <<= 1) {
-        double x = inv ? M_PI / i : -M_PI / i;
-        base w = {cos(x), sin(x)};
-        for (int j = 0; j < n; j += i << 1) {
-            base th = {1, 0};
-            for (int k = 0; k < i; k++) {
-                base tmp = a[i + j + k] * th;
-                a[i + j + k] = a[j + k] - tmp;
-                a[j + k] += tmp;
-                th *= w;
-            }
-        }
+
+    vector<base> inputEven, inputOdd, outputEven, outputOdd;
+    for(int i = 0; i < n; i++)
+    {
+        if(i % 2 == 0) inputEven.push_back(input[i]);
+        else inputOdd.push_back(input[i]);
     }
-    if (inv) {
-        for (int i = 0; i < n; i++) {
-            a[i] /= n;
-        }
+    
+    fft(inputEven, outputEven, w * w);
+    fft(inputOdd, outputOdd, w * w);
+
+    base wi = 1;
+    for(int i = 0; i < n / 2; i++) {
+        output[i] = outputEven[i] + wi * outputOdd[i];
+        wi *= w;
+    }
+
+    for(int i = 0; i < n / 2; i++) {
+        output[n / 2 + i] = outputEven[i] + wi * outputOdd[i];
+        wi *= w;
     }
 }
 
-void multiply(vector<base> &a, vector<base> &b) {
-    int n = (int) max(a.size(), b.size());
-    int i = 0;
-    while ((1 << i) < (n << 1)) i++;
-    n = 1 << i;
-    a.resize(n);
-    b.resize(n);
-    fft(a, false);
-    fft(b, false);
-    for (int i = 0; i < n; i++) {
-        a[i] *= b[i];
-    }
-    fft(a, true);
+void multiply(vector<int>& A, vector<int>& B, vector<int>& C)
+{
+    vector<base> a, b, c, dfta, dftb, dftc;
+    int sz;
+
+    for(int digit : A) a.push_back(digit);
+    for(int digit : B) b.push_back(digit);
+    sz = 1 << ((int)ceil(log2(max(a.size(), b.size()))) + 1);
+
+    a.resize(sz);
+    b.resize(sz);
+
+    base w = exp(base(0, 2 * M_PI / sz));
+    fft(a, dfta, w);
+    fft(b, dftb, w);
+
+    for(int i = 0; i < dfta.size(); i++) c.push_back(dfta[i] * dftb[i]);
+    w = base(1, 0) / w;
+    fft(c, dftc, w);
+
+    for(base digit : dftc) C.push_back(round(digit.real() / sz));
 }
 
-int main() {
-    ios::sync_with_stdio(false);    cin.tie(NULL);
-    vector<int> A, B;
+int main()
+{
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
 
     string a, b;
+    vector<int> num1, num2, ans;
     cin >> a >> b;
-    for(auto ch : a) A.push_back(ch - '0');
-    for(auto ch : b) B.push_back(ch - '0');
 
-    reverse(A.begin(), A.end());
-    reverse(B.begin(), B.end());
+    reverse(a.begin(), a.end());
+    reverse(b.begin(), b.end());
+    for(char ch : a) num1.push_back(ch - '0');
+    for(char ch : b) num2.push_back(ch - '0');
 
-    vector<int> ret = multiply(A, B);
-
-    int i = 0;
-    while (i < ret.size()) {
-        if (ret[i] >= 10) {
-            if (i == ret.size() - 1)
-                ret.push_back(ret[i] / 10);
-            else
-                ret[i + 1] += ret[i] / 10;
-            ret[i] %= 10;
-        }
-        ++i;
+    multiply(num1, num2, ans);
+    for(int i = 0; i < ans.size() - 1; i++)
+    {
+        ans[i + 1] += ans[i] / 10;
+        ans[i] %= 10;
     }
 
-    reverse(ret.begin(), ret.end());
-
-    bool start = false;
-    for (auto elem : ret) {
-        if (elem)start = true;
-        if (start)cout << elem;
-    }
-    if (!start)cout << '0';
-
-    return 0;
+    int end = ans.size() - 1;
+    for(; end > 0 && ans[end] == 0; end--);
+    for(; end >= 0; end--) cout << ans[end];
+    cout << '\n';
 }
