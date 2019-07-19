@@ -1,137 +1,111 @@
-#include<bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cmath>
 
 using namespace std;
 
-struct vector2{
-    double x, y;
+typedef long long ll;
 
-    vector2() { }
+struct Point
+{
+    int x, y;
 
-    vector2(double _x, double _y): x(_x), y(_y) { }
+    Point() {}
 
-    double cross(const vector2& v) const {
-        return x * v.y - y * v.x;
+    Point(Point p1, Point p2)
+    {
+        x = p2.x - p1.x;
+        y = p2.y - p1.y;
     }
+} P[200002];
 
-    double square_distance(const vector2& v) {
-        return pow(x - v.x, 2) + pow(y - v.y, 2);
-    }
+typedef Point Vector;
+int T, N;
+Point base;
+vector<Point> hull;
 
-    vector2 operator-(vector2 v) const{
-        return vector2(x - v.x, y - v.y);
-    }
-};
-
-//positive when b is ccw to a
-double ccw(vector2 a, vector2 b){
-    return a.cross(b);
+bool operator==(Point& p1, Point& p2)
+{
+    return p1.x == p2.x && p1.y == p2.y;
 }
 
-double ccw(vector2 p, vector2 a, vector2 b){
-    return ccw(a - p, b - p);
+bool comp1(Point p1, Point p2)
+{
+    if(p1 == base) return true;
+    if(p2 == base) return false;
+    p1.y -= base.y, p2.y -= base.y;
+    p1.x -= base.x, p2.x -= base.x;
+
+    return atan2(p1.x, p1.y) > atan2(p2.x, p2.y);
 }
 
-int n;
-vector<vector2> P, st;
-
-bool comp1(vector2 v1, vector2 v2) {
-    return v1.x == v2.x ? v1.y < v2.y : v1.x < v2.x;
+bool comp2(Point p1, Point p2)
+{
+    return p1.x == p2.x ? p1.y < p2.y : p1.x < p2.x;
 }
 
-bool comp2(vector2 v1, vector2 v2) {
-    vector2 v = P[0];
-
-    double dir = ccw(v, v1, v2);
-
-    return dir == 0 ? v.square_distance(v1) > v.square_distance(v2) : dir > 0;
+ll dist(Point p1, Point p2)
+{
+    return pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2);
 }
 
-struct PointCloud {
-    void convexHull() {
-        st.clear();
-        sort(P.begin(), P.end(), comp1);
-        sort(P.begin() + 1, P.end(), comp2);
+int ccw(Vector v1, Vector v2)
+{
+    ll result = v1.x * v2.y - v2.x * v1.y;
+    if(result > 0) return 1;
+    else if(result < 0) return -1;
+    else return 0;
+}
 
-        st.push_back(P[0]);
-        st.push_back(P[1]);
-        st.push_back(P[2]);
+int main()
+{
+    for(cin >> T; T > 0; T--)
+    {
+        hull.clear();
+        base.x = 1e9, base.y = 1e9;
 
-        for(int i = 2; i <= n; i++) {
-            vector2 p = P[i % n];
+        cin >> N;
+        for(int i = 1; i <= N; i++) cin >> P[i].x >> P[i].y;
 
-            while(st.size() >= 3) {
-                int sz = st.size();
-                vector2 p1 = st[sz - 1], p2 = st[sz - 2];
+        sort(P + 1, P + N + 1, comp2);
+        base = P[1];
+        sort(P + 2, P + N + 1, comp1);
 
-                if(ccw(p2, p1, p) <= 0) st.pop_back();
-                else break;
+        for(int i = 1; i <= N; i++)
+        {
+            while(hull.size() > 1)
+            {
+                int idx = hull.size(), dir;
+                Vector v1(hull[idx - 2], hull[idx - 1]), v2(hull[idx - 1], P[i]);
+                dir = ccw(v1, v2);
+
+                if(dir >= 0) break;
+                hull.pop_back();
             }
 
-            st.push_back(p);
-        }
-    }
-
-    pair<vector2, vector2> farthestPoint() {
-        vector2 v1, v2;
-        long long mx = 0;
-        int j = 1, sz = st.size();
-
-        if(sz - 1 <= 2) {
-            return {st[0], st[1]};
-        }
-
-        for(int i = 0; i < sz - 1; i++) {
-            vector2 p1 = st[i], p2 = st[(i + 1) % (sz - 1)];
-            vector2 q1, q2, q3;
-
-            while(1) {
-                q1 = st[j], q2 = st[(j + 1) % (sz - 1)], q3 = st[(j + 2) % (sz - 1)];
-                vector2 p = p2 - p1, _q1 = q2 - q1, _q2 = q3 - q2;
-
-                if((ccw(p, _q1) >= 0) ^ (ccw(p, _q2) >= 0)) break;
-                j = (j + 1) % (sz - 1);
-            }
-
-            if(mx < p1.square_distance(q1)) {
-                mx = p1.square_distance(q1);
-                v1 = p1;
-                v2 = q1;
-            }
-
-            if(mx < p1.square_distance(q2)) {
-                mx = p1.square_distance(q2);
-                v1 = p1;
-                v2 = q2;
-            }
-
-            if(mx < p1.square_distance(q3)) {
-                mx = p1.square_distance(q3);
-                v1 = p1;
-                v2 = q3;
-            }
+            hull.push_back(P[i]);
         }
 
-        return {v1, v2};
-    }
-} T;
+        ll ans[3] = { 0, 0, 0 };
+        int idx1_1 = 0, idx2_1 = 1, sz = hull.size();
+        while(idx2_1 != 0)
+        {
+            ll d = dist(hull[idx1_1], hull[idx2_1]);
+            if(ans[0] < d)
+            {
+                ans[0] = d;
+                ans[1] = idx1_1, ans[2] = idx2_1;
+            }
 
-int main(){
-    ios::sync_with_stdio(false);
-    cin.tie(NULL);
-    int t;
+            int dir, idx1_2 = (idx1_1 + sz - 1) % sz, idx2_2 = (idx2_1 + sz - 1) % sz;
+            Vector v1(hull[idx1_2], hull[idx1_1]), v2(hull[idx2_2], hull[idx2_1]);
+            dir = ccw(v1, v2);
 
-    for(cin >> t; t > 0; t--) {
-        P.clear();
-        cin >> n;
-        for(int i = 0; i < n; i++) {
-            int x, y;
-            cin >> x >> y;
-            P.push_back(vector2(x, y));
+            if(dir >= 0) idx2_1 = (idx2_1 + 1) % sz;
+            else idx1_1 = (idx1_1 + 1) % sz;
         }
 
-        T.convexHull();
-        auto result = T.farthestPoint();
-
-        cout << (int)result.first.x << ' ' << (int)result.first.y << ' ' << (int)result.second.x << ' ' << (int)result.second.y << '\n';
+        cout << hull[ans[1]].x << ' ' << hull[ans[1]].y << ' ' << hull[ans[2]].x << ' ' << hull[ans[2]].y << '\n';
     }
 }
