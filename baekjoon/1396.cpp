@@ -102,5 +102,9 @@ int main()
         }
     }
 
-    for(int i = 0; i < q; i++) cout << Q[i].ans[0] << ' ' << Q[i].ans[1] << '\n';
+    for(int i = 0; i < q; i++) 
+    {
+        if(Q[i].ans[0] != 0) cout << Q[i].ans[0] << ' ' << Q[i].ans[1] << '\n';
+        else cout << -1 << '\n';
+    }
 }
