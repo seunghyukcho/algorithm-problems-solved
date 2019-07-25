@@ -3,7 +3,7 @@
 This repository contains several solved / unsolved algorithm problems by shhj1998.
 
 - [Baekjoon](https://www.acmicpc.net/)
-- [Codeforces][https://codeforces.com/]
+- [Codeforces](https://codeforces.com/)
 - [AtCoder](https://atcoder.jp/)
 - [Algospot](https://algospot.com/)
 - [SCPC](https://www.codeground.org/main.do)
