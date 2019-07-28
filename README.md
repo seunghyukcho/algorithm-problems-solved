@@ -1,6 +1,6 @@
-# Problem Solved
+# Algorithm Problems Solved
 
-This repository contains several solved / unsolved algorithm problems by shhj1998.
+This repository contains several solved / unsolved algorithm problems solution by shhj1998.
 
 - [Baekjoon](https://www.acmicpc.net/)
 - [Codeforces](https://codeforces.com/)
@@ -12,3 +12,9 @@ This repository contains several solved / unsolved algorithm problems by shhj199
 - [USACO](http://www.usaco.org/)
 - [ACM-ICPC](https://icpc.baylor.edu/)
 
+## Career
+- KOI 2015 전국 본선 장려상
+- KOI 2016 전국 본선 동상
+- SCPC 2018 본선 진출
+- SCPC 2019 본선 진출
+- UCPC 2019 본선 진출 (with kimsj0302, ydj2030)
