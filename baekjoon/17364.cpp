@@ -1,7 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
-#include <set>
+#include <map>
 
 using namespace std;
 
@@ -19,30 +19,26 @@ int N, K, last, ans;
 
 int main()
 {
-    multiset<int> st;
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    map<int, int> m;
 
     cin >> N >> K;
     for(int i = 0; i < N; i++) cin >> D[i].s >> D[i].e;
     sort(D, D + N);
 
-    for(int i = 1; i < K; i++) st.insert(0);
+    for(int i = 1; i < K; i++) m[0]++;
     for(int i = 0; i < N; i++)
     {
         if(last < D[i].s)
         {
-            if(K > 1) 
+            auto f = m.upper_bound(-D[i].s);
+            if(f != m.end())
             {
-                auto f = upper_bound(st.begin(), st.end(), -D[i].s);
-                if(f != st.end())
-                {
-                    st.erase(*f);
-                    st.insert(-D[i].e);
-                }
-                else
-                {
-                    ans++;
-                    last = D[i].e;
-                }
+                m[-D[i].e]++;
+                m[f->first]--;
+                if(m[f->first] == 0) m.erase(f);
             }
             else
             {
