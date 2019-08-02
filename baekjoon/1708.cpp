@@ -1,81 +1,88 @@
-#include<bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cmath>
 
 using namespace std;
 
-int n;
+typedef long long ll;
 
-struct vector2{
+struct Point
+{
     double x, y;
 
-    vector2(double _x, double _y): x(_x), y(_y) { }
+    Point() {}
 
-    double cross(const vector2& v) const {
-        return x * v.y - y * v.x;
+    Point(Point p1, Point p2)
+    {
+        x = p2.x - p1.x;
+        y = p2.y - p1.y;
     }
+} P[200002];
 
-    double square_distance(const vector2& v) {
-        return pow(x - v.x, 2) + pow(y - v.y, 2);
-    }
+typedef Point Vector;
+int T, N;
+Point base;
+vector<Point> hull;
 
-    vector2 operator-(vector2 v) const{
-        return vector2(x - v.x, y - v.y);
-    }
-};
-
-double ccw(vector2 a, vector2 b){
-    return a.cross(b);
+bool operator==(Point& p1, Point& p2)
+{
+    return p1.x == p2.x && p1.y == p2.y;
 }
 
-//positive when b is ccw to a
-double ccw(vector2 p, vector2 a, vector2 b){
-    return ccw(a - p, b - p);
+int ccw(Vector v1, Vector v2)
+{
+    double result = v1.x * v2.y - v2.x * v1.y;
+    if(result > 0) return 1;
+    else if(result < 0) return -1;
+    else return 0;
 }
 
-vector<vector2> P, st;
-
-bool comp1(vector2 v1, vector2 v2) {
-    return v1.x == v2.x ? v1.y < v2.y : v1.x < v2.x;
+double dist(Point p1, Point p2)
+{
+    return pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2);
 }
 
-bool comp2(vector2 v1, vector2 v2) {
-    vector2 v = P[0];
+bool comp1(Point p1, Point p2)
+{
+    Vector v1(base, p1), v2(base, p2);
+    int dir = ccw(v1, v2);
 
-    double dir = ccw(v, v1, v2);
-
-    return dir == 0 ? v.square_distance(v1) > v.square_distance(v2) : dir > 0;
+    return dir == 0 ? dist(base, p1) > dist(base, p2) : dir > 0;
 }
 
-int main(){
-    ios::sync_with_stdio(false);
-    cin.tie(NULL);
+bool comp2(Point p1, Point p2)
+{
+    return p1.x == p2.x ? p1.y < p2.y : p1.x < p2.x;
+}
 
-    cin >> n;
-    for(int i = 0; i < n; i++) {
-        vector2 v(0, 0);
-        cin >> v.x >> v.y;
-        P.push_back(v);
-    }
+int main()
+{
+    hull.clear();
 
-    sort(P.begin(), P.end(), comp1);
-    sort(P.begin() + 1, P.end(), comp2);
+    cin >> N;
+    for(int i = 1; i <= N; i++) cin >> P[i].x >> P[i].y;
 
-    st.push_back(P[0]);
-    st.push_back(P[1]);
-    st.push_back(P[2]);
+    sort(P + 1, P + N + 1, comp2);
+    base = P[1];
+    sort(P + 2, P + N + 1, comp1);
 
-    for(int i = 2; i <= n; i++) {
-        vector2 p = P[i % n];
+    for(int i = 1; i <= N + 1; i++)
+    {
+        while(hull.size() > 2)
+        {
+            int idx = hull.size(), dir;
+            Vector v1(hull[idx - 2], hull[idx - 1]), v2(hull[idx - 2], P[(i - 1) % N + 1]);
+            dir = ccw(v1, v2);
 
-        while(st.size() >= 3) {
-            int sz = st.size();
-            vector2 p1 = st[sz - 1], p2 = st[sz - 2];
-
-            if(ccw(p2, p1, p) <= 0) st.pop_back();
-            else break;
+            if(dir > 0) break;
+            hull.pop_back();
         }
 
-        st.push_back(p);
+        if(i < N + 1) hull.push_back(P[i]);
     }
 
-    cout << st.size() - 1 << '\n';
+    // for(Point p : hull) cout << p.x << ' ' << p.y << '\n';
+
+    cout << hull.size() << '\n';
 }
