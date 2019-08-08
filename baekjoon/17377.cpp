@@ -1,13 +1,16 @@
-#include<iostream>
-#include<string>
-#include<map>
-#include<cmath>
+#include <iostream>
+#include <string>
+#include <map>
+#include <cmath>
+
 using namespace std;
 
 map<string,pair<int,int>> place;
 map<string, int> station;
-map<string, pair<int,int> > customer; 
-int nowx,nowy;
+map<string, pair<int, double> > customer; 
+
+int nowx, nowy;
+
 void getinput(){
     string nowp="";
     string tmp;
@@ -50,12 +53,14 @@ void getstation(){
 
     station[nowp]=p;
 }
+
 int dist(int x1,int y1,int x2,int y2){
     return abs(x1 - x2) + abs(y1 - y2);
 }
+
 int main(){
     double fuel,mon,go;
-    cin >> fuel>>mon>>go;
+    cin >> fuel >> mon >> go;
     double nowfuel=fuel;
     int pass=0;
     int money=0;
@@ -84,7 +89,7 @@ int main(){
             pl.pop_back();
             
             int nowdist=dist(place[pl].first,place[pl].second,nowx,nowy);
-            nowfuel-=nowdist / go;
+            nowfuel -= nowdist / go;
             
             nowx = place[pl].first, nowy = place[pl].second;
             if(nowfuel<0){
@@ -97,7 +102,7 @@ int main(){
             }
 
             if(customer[pl].first!=0){
-                money+=(int)(customer[pl].second * mon);
+                money += (int)(customer[pl].second * mon);
                 pass-=customer[pl].first;
                 customer[pl].first=0;
                 customer[pl].second=0;
@@ -105,7 +110,7 @@ int main(){
 
             if(station[pl] != 0){
                 int result = (fuel - nowfuel) * station[pl] + 1e-10;
-                if(result<=money){
+                if(result <= money){
                     money = money - result;
                     nowfuel=fuel;
                 }
