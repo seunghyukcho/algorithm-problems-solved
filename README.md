@@ -1,5 +1,3 @@
-# Algorithm Problems Solved
-
 This repository contains several solved / unsolved algorithm problems solution by shhj1998.
 
 - [Baekjoon](https://www.acmicpc.net/)
